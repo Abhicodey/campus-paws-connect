@@ -1,19 +1,11 @@
 import LeaderboardCard from "@/components/LeaderboardCard";
 import BottomNav from "@/components/BottomNav";
-import { Info } from "lucide-react";
-
-const mockLeaderboard = [
-  { rank: 1, name: "Priya", points: 450 },
-  { rank: 2, name: "Arjun", points: 380 },
-  { rank: 3, name: "Neha", points: 340 },
-  { rank: 4, name: "Rahul", points: 290 },
-  { rank: 5, name: "Ananya", points: 250 },
-  { rank: 6, name: "Vikram", points: 210 },
-  { rank: 7, name: "Meera", points: 180 },
-  { rank: 8, name: "Sanjay", points: 150 },
-];
+import { Info, Loader2 } from "lucide-react";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
 
 const Leaderboard = () => {
+  const { data: leaderboard, isLoading, error } = useLeaderboard();
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -36,9 +28,31 @@ const Leaderboard = () => {
 
       {/* Leaderboard */}
       <div className="px-6 mt-6 space-y-3">
-        {mockLeaderboard.map((user) => (
-          <LeaderboardCard key={user.rank} {...user} />
-        ))}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+            <p className="text-muted-foreground text-sm">Loading leaderboard...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <p>Something went wrong. Please try again.</p>
+          </div>
+        ) : leaderboard && leaderboard.length > 0 ? (
+          leaderboard.map((user, index) => (
+            <LeaderboardCard
+              key={user.id}
+              rank={index + 1}
+              name={user.username || 'Anonymous'}
+              points={user.points}
+              avatarUrl={user.avatar_url}
+              avatarUpdatedAt={user.avatar_updated_at}
+            />
+          ))
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            <p>No kindness champions yet. Be the first! 🏆</p>
+          </div>
+        )}
       </div>
 
       <BottomNav />

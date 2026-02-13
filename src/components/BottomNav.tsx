@@ -1,16 +1,25 @@
-import { Home, Dog, Trophy, Image, User } from "lucide-react";
+import { Home, Dog, Trophy, Image, User, Shield, Heart } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-
-const navItems = [
-  { icon: Home, label: "Home", path: "/" },
-  { icon: Dog, label: "Dogs", path: "/dogs" },
-  { icon: Trophy, label: "Board", path: "/leaderboard" },
-  { icon: Image, label: "Gallery", path: "/gallery" },
-  { icon: User, label: "Profile", path: "/profile" },
-];
+import { useAuth } from "@/contexts/AuthContext";
 
 const BottomNav = () => {
   const location = useLocation();
+  const { user } = useAuth();
+
+  const isAdmin = user?.role === 'president' || user?.role === 'admin';
+
+  // Build nav items based on user role
+  const navItems = [
+    { icon: Home, label: "Home", path: "/" },
+    { icon: Dog, label: "Dogs", path: "/dogs" },
+    // Show leaderboard for regular users, admin panel for admins
+    isAdmin
+      ? { icon: Shield, label: "Admin", path: "/admin" }
+      : { icon: Trophy, label: "Board", path: "/leaderboard" },
+    { icon: Heart, label: "Community", path: "/community" },
+    { icon: Image, label: "Gallery", path: "/gallery" },
+    { icon: User, label: "Profile", path: "/profile" },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 px-2 py-2 z-50">
@@ -21,11 +30,10 @@ const BottomNav = () => {
             <Link
               key={path}
               to={path}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? "text-primary bg-primary/10"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 ${isActive
+                ? "text-primary bg-primary/10"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               <Icon className={`w-5 h-5 ${isActive ? "animate-scale-in" : ""}`} />
               <span className="text-xs font-medium">{label}</span>

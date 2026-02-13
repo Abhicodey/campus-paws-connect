@@ -1,21 +1,57 @@
-import { QrCode, Dog, Trophy, Image } from "lucide-react";
+import { QrCode, Dog, Trophy, Image, Shield, PawPrint, Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
+import NotificationBell from "@/components/NotificationBell";
+import { UsernameStatusBanner } from "@/components/UsernameStatusBanner";
+import { useCampusStats } from "@/hooks/useCampusStats";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/components/ThemeProvider";
 import heroIllustration from "@/assets/hero-illustration.png";
-import dogBuddy from "@/assets/dog-buddy.png";
 
 const Index = () => {
+  const { data: stats, isLoading } = useCampusStats();
+  const { isPresident, profileLoading } = useAuth();
+  const { theme, setTheme } = useTheme();
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <header className="pt-8 px-6 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <img src={dogBuddy} alt="CampusPaws mascot" className="w-12 h-12 animate-float" />
-          <h1 className="text-2xl font-bold text-foreground">CampusPaws</h1>
+      <header className="pt-8 px-6">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="relative w-9 h-9 flex items-center justify-center">
+              <img
+                src="/campuspaws-logo.png"
+                alt="Logo"
+                className="w-full h-full object-contain relative z-10"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              <PawPrint className="w-6 h-6 text-primary absolute" />
+            </div>
+
+            <div>
+              <span className="text-xl font-semibold tracking-tight text-foreground block">
+                CampusPaws
+              </span>
+              <p className="text-muted-foreground text-xs">
+                Sharing Care & Comfort
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-full hover:bg-muted transition-colors text-foreground"
+              title="Toggle Theme"
+            >
+              {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <NotificationBell />
+          </div>
         </div>
-        <p className="text-muted-foreground text-sm">
-          Sharing Care, Comfort & Connection
-        </p>
       </header>
 
       {/* Hero Illustration */}
@@ -33,6 +69,24 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Username Status Banner (hidden for president) */}
+      <UsernameStatusBanner className="mx-6 mt-4" />
+
+      {/* President Dashboard Button */}
+      {!profileLoading && isPresident && (
+        <div className="px-6 mt-4">
+          <Link
+            to="/admin"
+            className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-amber-500 to-orange-500 
+              text-white py-4 px-6 rounded-2xl font-semibold text-lg shadow-warm transition-all 
+              duration-200 hover:opacity-90 active:scale-[0.98]"
+          >
+            <Shield className="w-6 h-6" />
+            President Dashboard
+          </Link>
+        </div>
+      )}
+
       {/* Primary Action */}
       <div className="px-6 mt-8">
         <Link
@@ -46,72 +100,77 @@ const Index = () => {
         </Link>
       </div>
 
-      {/* Secondary Actions */}
-      <div className="grid grid-cols-3 gap-3 px-6 mt-6">
+      {/* Quick Actions */}
+      <div className="px-6 mt-4 grid grid-cols-3 gap-3">
         <Link
           to="/dogs"
-          className="card-warm flex flex-col items-center gap-2 py-5 px-3 transition-all 
-            hover:shadow-warm active:scale-[0.97]"
+          className="card-elevated flex flex-col items-center justify-center py-5 gap-2 transition-all hover:scale-[1.02]"
         >
-          <Dog className="w-7 h-7 text-primary" />
-          <span className="text-sm font-medium text-foreground">View Dogs</span>
-        </Link>
-
-        <Link
-          to="/leaderboard"
-          className="card-warm flex flex-col items-center gap-2 py-5 px-3 transition-all 
-            hover:shadow-warm active:scale-[0.97]"
-        >
-          <Trophy className="w-7 h-7 text-amber-600" />
-          <span className="text-sm font-medium text-foreground">Leaderboard</span>
+          <div className="w-11 h-11 rounded-full bg-accent flex items-center justify-center">
+            <Dog className="w-5 h-5 text-accent-foreground" />
+          </div>
+          <span className="text-sm font-medium text-foreground">Our Dogs</span>
         </Link>
 
         <Link
           to="/gallery"
-          className="card-warm flex flex-col items-center gap-2 py-5 px-3 transition-all 
-            hover:shadow-warm active:scale-[0.97]"
+          className="card-elevated flex flex-col items-center justify-center py-5 gap-2 transition-all hover:scale-[1.02]"
         >
-          <Image className="w-7 h-7 text-secondary" />
+          <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center">
+            <Image className="w-5 h-5 text-secondary-foreground" />
+          </div>
           <span className="text-sm font-medium text-foreground">Gallery</span>
+        </Link>
+
+        <Link
+          to="/leaderboard"
+          className="card-elevated flex flex-col items-center justify-center py-5 gap-2 transition-all hover:scale-[1.02]"
+        >
+          <div className="w-11 h-11 rounded-full bg-primary/20 flex items-center justify-center">
+            <Trophy className="w-5 h-5 text-primary" />
+          </div>
+          <span className="text-sm font-medium text-foreground">Leaders</span>
         </Link>
       </div>
 
-      {/* Quick Stats */}
+      {/* Stats */}
       <div className="px-6 mt-8">
-        <div className="card-elevated p-5">
-          <h2 className="font-semibold text-foreground mb-4">Campus at a Glance</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-3">Campus Stats 📊</h2>
+        <div className="card-elevated p-4">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-primary">12</p>
-              <p className="text-xs text-muted-foreground">Dogs Registered</p>
+              <p className="text-2xl font-bold text-primary">
+                {isLoading ? (
+                  <span className="inline-block w-8 h-6 bg-muted animate-pulse rounded" />
+                ) : (
+                  stats?.totalDogs ?? 0
+                )}
+              </p>
+              <p className="text-xs text-muted-foreground">Dogs</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-secondary">48</p>
-              <p className="text-xs text-muted-foreground">Care Actions Today</p>
+              <p className="text-2xl font-bold text-secondary-foreground">
+                {isLoading ? (
+                  <span className="inline-block w-8 h-6 bg-muted animate-pulse rounded" />
+                ) : (
+                  stats?.totalMembers ?? 0
+                )}
+              </p>
+              <p className="text-xs text-muted-foreground">Members</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-coral">156</p>
-              <p className="text-xs text-muted-foreground">Community Members</p>
+              <p className="text-2xl font-bold text-accent-foreground">
+                {isLoading ? (
+                  <span className="inline-block w-8 h-6 bg-muted animate-pulse rounded" />
+                ) : (
+                  stats?.actionsToday ?? 0
+                )}
+              </p>
+              <p className="text-xs text-muted-foreground">Today</p>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Add Dog CTA */}
-      <div className="px-6 mt-6">
-        <Link
-          to="/add-dog"
-          className="block text-center bg-muted text-muted-foreground py-3 px-6 rounded-2xl 
-            font-medium transition-all hover:bg-muted/80 active:scale-[0.98]"
-        >
-          + Register a New Campus Friend
-        </Link>
-      </div>
-
-      {/* Footer Note */}
-      <p className="text-center text-xs text-muted-foreground mt-8 px-6">
-        A student-driven initiative for campus animal welfare ❤️
-      </p>
 
       <BottomNav />
     </div>

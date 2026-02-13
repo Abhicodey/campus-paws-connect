@@ -1,56 +1,254 @@
+import { useState } from "react";
 import Badge from "@/components/Badge";
 import BottomNav from "@/components/BottomNav";
-import { Dog, Heart, Award, Star, Settings, LogOut, Clock, Bone } from "lucide-react";
+import { Dog, Heart, Award, Clock, Bone, LogOut, Loader2, User, Edit3, Check, Cake } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUserBadges } from "@/hooks/useUserBadges";
+import { useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import EditUsernameModal from "@/components/profile/EditUsernameModal";
+import EditAvatarModal from "@/components/profile/EditAvatarModal";
+import EditBirthdayModal from "@/components/profile/EditBirthdayModal"; // Added import
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useRecentNotifications } from "@/hooks/useRecentNotifications";
+import { supabase } from "@/lib/supabase";
+import { useTheme } from "@/components/ThemeProvider"; // Added import
+import { toast } from "sonner"; // Added import
 
-const mockUser = {
-  name: "Priya Sharma",
-  points: 450,
-  rank: 1,
-  joinedDate: "October 2024",
-  recentActions: [
-    { action: "Fed Buddy", time: "2 hours ago", icon: <Bone className="w-4 h-4" /> },
-    { action: "Pet Luna", time: "Yesterday", icon: <Heart className="w-4 h-4" /> },
-    { action: "Updated Brownie's location", time: "2 days ago", icon: <Dog className="w-4 h-4" /> },
-  ],
-  badges: [
-    { icon: "🐕", label: "Dog Friend", earned: true },
-    { icon: "💚", label: "Care Giver", earned: true },
-    { icon: "👑", label: "Kindness Champion", earned: true },
-    { icon: "⭐", label: "Early Adopter", earned: true },
-    { icon: "🌟", label: "Super Helper", earned: false },
-    { icon: "🏆", label: "Monthly Top", earned: false },
-  ],
-};
+// Helper for cooldown text
+function getCooldownRemaining(date?: string) {
+  if (!date) return null;
+  const diff = new Date(date).getTime() - Date.now();
+  if (diff <= 0) return null;
+
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return `${days} day${days > 1 ? "s" : ""}`;
+}
 
 const Profile = () => {
-  return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <div className="bg-primary pt-8 pb-16 px-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-xl font-bold text-primary-foreground">{mockUser.name}</h1>
-            <p className="text-primary-foreground/80 text-sm mt-1">
-              Member since {mockUser.joinedDate}
-            </p>
-          </div>
-          <button className="p-2 rounded-full bg-primary-foreground/10 text-primary-foreground">
-            <Settings className="w-5 h-5" />
-          </button>
+  const navigate = useNavigate();
+
+  /* -------------------- ALL HOOKS AT TOP LEVEL -------------------- */
+  const { profile, signOut, authLoading, profileLoading, authUser } = useAuth();
+  const { data: profileData } = useUserProfile();
+  const { data: userBadges, isLoading: badgesLoading } = useUserBadges(authUser?.id);
+  const { data: notifications, isLoading: notificationsLoading } = useRecentNotifications();
+
+  // New state for Edit Modals
+  const [usernameModalOpen, setUsernameModalOpen] = useState(false);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [birthdayModalOpen, setBirthdayModalOpen] = useState(false);
+
+  // Inline Birthday State
+  const [birthdate, setBirthdate] = useState<string>(profile?.birthdate || "");
+  const { theme, setTheme } = useTheme();
+
+  // Sync state with profile
+  if (profile?.birthdate && birthdate === "") {
+    setBirthdate(profile.birthdate);
+  }
+
+  const saveBirthdate = async () => {
+    if (!birthdate) return;
+
+    // Cooldown check
+    const lastUpdate = profile?.birthdate_updated_at ? new Date(profile.birthdate_updated_at) : null;
+    const daysSinceUpdate = lastUpdate ? (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24) : 999;
+
+    if (profile?.birthdate && daysSinceUpdate < 7) {
+      toast.error(`Cooldown active. Try again in ${Math.ceil(7 - daysSinceUpdate)} days.`);
+      return;
+    }
+
+    const { error } = await supabase
+      .from("users")
+      .update({
+        birthdate,
+        // Trigger handles birthdate_updated_at
+      })
+      .eq("id", authUser?.id);
+
+    if (!error) {
+      toast.success("Birthdate updated 🎉");
+      // Optional: Refresh profile logic here if needed, but context listener might pick it up
+    } else {
+      toast.error(error.message);
+    }
+  };
+
+  // ... guards ...
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  if (authLoading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm">Loading profile...</p>
         </div>
       </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <p className="text-muted-foreground mb-4">Unable to load profile</p>
+        <button
+          onClick={() => navigate("/login")}
+          className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-medium"
+        >
+          Sign In
+        </button>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  /* -------------------- DERIVED DATA -------------------- */
+  const displayUser = profileData?.user || profile;
+  const isOwnProfile = true; // This page is always the current user's profile for now
+  const rank = profileData?.rank || 0;
+
+  // Convert database badges to display format
+  const badges = (userBadges || []).map(badge => ({
+    icon: badge.icon || "🏆",
+    label: badge.name,
+    earned: true, // All fetched badges are earned
+  }));
+
+  const isAdmin = displayUser.role === 'president' || displayUser.role === 'admin';
+  const roleLabel = displayUser.role === 'president'
+    ? '🛡️ Campus Welfare President'
+    : displayUser.role === 'admin'
+      ? '👑 Verified Admin'
+      : null;
+
+  /* -------------------- UI -------------------- */
+  return (
+    <div className="bg-background pb-16 space-y-5">
+      {/* Header */}
+      <div className="bg-primary pt-8 pb-16 px-6 h-40 rounded-b-3xl relative z-0">
+        <div className="flex justify-between items-start">
+          <div className="relative z-10 flex items-center gap-4">
+
+            {/* Clickable Avatar */}
+            <div
+              className={`relative group ${profileData ? '' : 'cursor-pointer'} w-fit`}
+              onClick={() => !profileData && setAvatarModalOpen(true)}
+            >
+              <Avatar className="w-20 h-20 border-2 border-primary-foreground/30">
+                <AvatarImage
+                  key={(displayUser as any).avatar_updated_at || 'avatar'}
+                  src={(() => {
+                    if (!displayUser.avatar_url) return undefined;
+                    // Check if it already has params (like Google URLs)
+                    const separator = displayUser.avatar_url.includes('?') ? '&' : '?';
+                    return `${displayUser.avatar_url}${separator}t=${(displayUser as any).avatar_updated_at || Date.now()}`;
+                  })()}
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-2xl">
+                  {displayUser.username?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
+                </AvatarFallback>
+              </Avatar>
+              {/* Overlay hint */}
+              <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <Edit3 className="w-6 h-6 text-white" />
+              </div>
+            </div>
+
+            <div>
+              {/* Clickable Username */}
+              <div
+                className="group cursor-pointer"
+                onClick={() => setUsernameModalOpen(true)}
+              >
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold text-primary-foreground group-hover:underline decoration-white/50 underline-offset-4 decoration-2 transition-all">
+                    @{displayUser.username || 'Campus Pawer'}
+                  </h1>
+                  {profile?.username_status === 'approved' && (
+                    <Check className="w-4 h-4 text-green-300" />
+                  )}
+                  {profile?.username_status === 'pending' && (
+                    <span className="bg-yellow-500/20 text-yellow-200 text-[10px] px-1.5 py-0.5 rounded border border-yellow-500/30">
+                      PENDING
+                    </span>
+                  )}
+                </div>
+                <p className="text-primary-foreground/60 text-xs mt-0.5 group-hover:text-primary-foreground/90 transition-colors">
+                  Tap to edit
+                </p>
+              </div>
+
+              {roleLabel && (
+                <p className="text-primary-foreground font-medium text-sm mt-1">{roleLabel}</p>
+              )}
+
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="absolute top-0 right-0 p-2 text-primary-foreground/80 hover:text-white transition-colors"
+                title="Toggle Theme"
+              >
+                {theme === "dark" ? "🌞" : "🌙"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Inline Birthday Section (Request 1) */}
+      {isOwnProfile && (
+        <div className="px-6 -mt-4 mb-6 relative z-10">
+          <div className="p-4 rounded-2xl border bg-card shadow-sm">
+            <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+              Birthdate 🎂
+              {profile?.birthdate && <span className="text-xs font-normal text-muted-foreground">(Saved)</span>}
+            </h3>
+
+            <input
+              type="date"
+              value={birthdate}
+              onChange={(e) => setBirthdate(e.target.value)}
+              className="w-full rounded-lg border px-3 py-2 bg-background text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
+            />
+
+            <p className="text-xs text-muted-foreground mt-2">
+              Optional — Used only to send you a birthday wish from CampusPaws 🐾
+            </p>
+
+            <button
+              onClick={saveBirthdate}
+              className="mt-3 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              {profile?.birthdate ? "Update Birthdate" : "Save Birthdate"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stats Card */}
       <div className="px-6 -mt-10">
         <div className="card-elevated p-5">
           <div className="flex items-center justify-between">
             <div className="text-center flex-1">
-              <p className="text-3xl font-bold text-primary">{mockUser.points}</p>
+              <p className="text-3xl font-bold text-primary">{displayUser.points || 0}</p>
               <p className="text-xs text-muted-foreground">Kindness Points</p>
             </div>
             <div className="w-px h-12 bg-border" />
             <div className="text-center flex-1">
-              <p className="text-3xl font-bold text-secondary">#{mockUser.rank}</p>
+              {profileLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin text-secondary mx-auto" />
+              ) : (
+                <p className="text-3xl font-bold text-secondary">#{rank || '-'}</p>
+              )}
               <p className="text-xs text-muted-foreground">Leaderboard Rank</p>
             </div>
           </div>
@@ -60,42 +258,90 @@ const Profile = () => {
       {/* Badges */}
       <div className="px-6 mt-6">
         <h2 className="font-semibold text-foreground mb-3">Your Badges</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {mockUser.badges.map((badge, index) => (
-            <Badge key={index} icon={badge.icon} label={badge.label} earned={badge.earned} />
-          ))}
-        </div>
+        {badgesLoading ? (
+          <div className="flex items-center justify-center p-6">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : badges.length > 0 ? (
+          <div className="grid grid-cols-3 gap-3">
+            {badges.map((badge, index) => (
+              <Badge key={index} icon={badge.icon} label={badge.label} earned={badge.earned} />
+            ))}
+          </div>
+        ) : (
+          <div className="card-warm p-6 text-center text-muted-foreground">
+            <p className="text-sm">No badges yet. Start caring for dogs to earn badges! 🐾</p>
+          </div>
+        )}
       </div>
 
-      {/* Recent Actions */}
+      {/* Recent Notifications */}
       <div className="px-6 mt-6">
-        <h2 className="font-semibold text-foreground mb-3">Recent Activity</h2>
-        <div className="card-warm p-4 space-y-3">
-          {mockUser.recentActions.map((item, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                {item.icon}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">{item.action}</p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {item.time}
-                </p>
-              </div>
+        <h2 className="font-semibold text-foreground mb-3">Recent Updates</h2>
+        {notificationsLoading ? (
+          <div className="card-warm p-6 text-center">
+            <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
+          </div>
+        ) : notifications && notifications.length > 0 ? (
+          <div className="card-warm p-5">
+            <div className="space-y-3">
+              {notifications.map((n: any) => (
+                <div
+                  key={n.id}
+                  className="text-sm text-foreground/80 border-b border-border/40 pb-2 last:border-none last:pb-0"
+                >
+                  <p className="font-medium text-foreground">{n.title || "Notification"}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                  <p className="text-[10px] text-muted-foreground/60 mt-1">
+                    {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="card-warm p-6 text-center text-muted-foreground">
+            <p className="text-sm">No new notifications. Everything is quiet! 🤫</p>
+          </div>
+        )}
       </div>
+
+      {/* Admin Button */}
+      {isAdmin && (
+        <div className="px-6 mt-6">
+          <button
+            onClick={() => navigate('/admin')}
+            className="w-full flex items-center justify-center gap-2 bg-accent text-accent-foreground py-3 rounded-xl 
+              font-medium transition-all hover:opacity-90 active:scale-[0.98]"
+          >
+            <Award className="w-5 h-5" />
+            President Panel
+          </button>
+        </div>
+      )}
 
       {/* Logout */}
       <div className="px-6 mt-6">
-        <button className="w-full flex items-center justify-center gap-2 text-destructive py-3 rounded-xl 
-          font-medium transition-all hover:bg-destructive/10 active:scale-[0.98]">
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl 
+            font-medium transition-all active:scale-[0.98]"
+        >
           <LogOut className="w-5 h-5" />
           Sign Out
         </button>
       </div>
+
+      {/* Modals */}
+      {usernameModalOpen && authUser && (
+        <EditUsernameModal user={authUser} profile={profile} onClose={() => setUsernameModalOpen(false)} />
+      )}
+      {avatarModalOpen && authUser && (
+        <EditAvatarModal user={authUser} profile={profile} onClose={() => setAvatarModalOpen(false)} />
+      )}
+      {birthdayModalOpen && authUser && (
+        <EditBirthdayModal user={authUser} profile={profile} onClose={() => setBirthdayModalOpen(false)} />
+      )}
 
       <BottomNav />
     </div>

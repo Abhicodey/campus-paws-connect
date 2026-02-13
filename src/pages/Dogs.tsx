@@ -1,26 +1,33 @@
 import { useNavigate } from "react-router-dom";
 import DogCard from "@/components/DogCard";
 import BottomNav from "@/components/BottomNav";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-
-const mockDogs = [
-  { id: "1", name: "Buddy", image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400", location: "Near Library", status: "friendly" as const },
-  { id: "2", name: "Brownie", image: "https://images.unsplash.com/photo-1558788353-f76d92427f16?w=400", location: "Food Court Area", status: "shy" as const },
-  { id: "3", name: "Max", image: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=400", location: "Hostel Area", status: "care" as const },
-  { id: "4", name: "Luna", image: "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=400", location: "Sports Ground", status: "friendly" as const },
-  { id: "5", name: "Charlie", image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400", location: "Admin Block", status: "avoid" as const },
-];
+import { useDogs } from "@/hooks/useDogs";
+import { getBehaviourLabel, getBehaviourDisplay } from "@/types/database.types";
 
 const Dogs = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: dogs, isLoading, error } = useDogs(searchQuery);
 
-  const filteredDogs = mockDogs.filter(dog =>
-    dog.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    dog.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Map behaviour score to status for DogCard
+  const getStatusFromBehaviourScore = (score: number = 0): "friendly" | "shy" | "care" | "avoid" => {
+    const label = getBehaviourLabel(score);
+    switch (label) {
+      case 'generally_friendly':
+        return 'friendly';
+      case 'usually_calm':
+        return 'friendly';
+      case 'shy_cautious':
+        return 'shy';
+      case 'needs_space':
+        return 'avoid';
+      default:
+        return 'friendly';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -28,7 +35,7 @@ const Dogs = () => {
       <header className="pt-6 px-6">
         <h1 className="text-2xl font-bold text-foreground">Campus Dogs</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          {mockDogs.length} friends registered
+          {isLoading ? '...' : `${dogs?.length || 0} friends registered`}
         </p>
       </header>
 
@@ -49,17 +56,34 @@ const Dogs = () => {
 
       {/* Dogs List */}
       <div className="px-6 mt-6 space-y-3">
-        {filteredDogs.map((dog) => (
-          <DogCard
-            key={dog.id}
-            {...dog}
-            onClick={() => navigate(`/dog/${dog.id}`)}
-          />
-        ))}
-
-        {filteredDogs.length === 0 && (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+            <p className="text-muted-foreground text-sm">Loading dogs...</p>
+          </div>
+        ) : error ? (
           <div className="text-center py-12 text-muted-foreground">
-            <p>No dogs found matching "{searchQuery}"</p>
+            <p>Something went wrong. Please try again.</p>
+          </div>
+        ) : dogs && dogs.length > 0 ? (
+          dogs.map((dog) => (
+            <DogCard
+              key={dog.id}
+              id={dog.id}
+              name={dog.name}
+              image={dog.profile_image || "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400"}
+              location={dog.soft_locations?.[0] || "Campus"}
+              status={getStatusFromBehaviourScore(0)} // Will be updated when we fetch summary
+              onClick={() => navigate(`/dog/${dog.id}`)}
+            />
+          ))
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            {searchQuery ? (
+              <p>No dogs found matching "{searchQuery}"</p>
+            ) : (
+              <p>No dogs registered yet. Be the first to add one!</p>
+            )}
           </div>
         )}
       </div>
