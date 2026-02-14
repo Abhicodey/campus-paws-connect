@@ -29,16 +29,26 @@ export default function EditUsernameModal({ user, profile, onClose }: EditUserna
 
         setLoading(true);
         try {
-            const updates: any = {
-                username_pending: username !== profile.username ? username : null,
-            };
+            const isPresident = profile.role === 'president';
+            const updates: any = {};
 
-            if (updates.username_pending) {
-                updates.username_status = "pending";
-            } else if (username === profile.username) {
-                // Reverting request
+            if (isPresident) {
+                // President Bypass: Direct Update
+                updates.username = username;
+                updates.username_status = 'approved';
                 updates.username_pending = null;
-                updates.username_status = "approved";
+                // updates.username_updated_at = new Date().toISOString(); // Optional if needed
+            } else {
+                // Normal User: Request Change
+                updates.username_pending = username !== profile.username ? username : null;
+
+                if (updates.username_pending) {
+                    updates.username_status = "pending";
+                } else if (username === profile.username) {
+                    // Reverting request
+                    updates.username_pending = null;
+                    updates.username_status = "approved";
+                }
             }
 
             const { error } = await supabase
@@ -48,7 +58,11 @@ export default function EditUsernameModal({ user, profile, onClose }: EditUserna
 
             if (error) throw error;
 
-            toast.success("Username request sent!");
+            if (profile.role === 'president') {
+                toast.success("Username updated successfully! 🛡️");
+            } else {
+                toast.success("Username request sent!");
+            }
 
             // Invalidate queries
             queryClient.invalidateQueries({ queryKey: ['profile'] });

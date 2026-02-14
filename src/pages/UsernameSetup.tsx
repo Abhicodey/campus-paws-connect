@@ -42,7 +42,7 @@ const UsernameSetup = () => {
                 <div className="flex-1 flex flex-col items-center justify-center px-6">
                     <div className="flex items-center justify-center gap-2 mb-6">
                         <img
-                            src="/campuspaws-logo.png"
+                            src="/logo.png"
                             alt="CampusPaws Official Logo"
                             className="h-16 w-16 object-contain"
                         />

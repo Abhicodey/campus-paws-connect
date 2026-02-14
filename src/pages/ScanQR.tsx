@@ -108,7 +108,7 @@ const ScanQR = () => {
         {/* Official Logo */}
         <div className="flex items-center justify-center gap-2 mt-4">
           <img
-            src="/campuspaws-logo.png"
+            src="/logo.png"
             alt="CampusPaws Official Logo"
             className="h-16 w-16 object-contain"
           />

@@ -54,7 +54,7 @@ export default function EditAvatarModal({ user, profile, onClose }: EditAvatarMo
                 .from("users")
                 .update({
                     avatar_url: publicUrl,
-                    avatar_status: 'approved',
+                    avatar_status: profile.role === 'president' ? 'approved' : 'pending',
                     avatar_updated_at: new Date().toISOString()
                 })
                 .eq("id", user.id)

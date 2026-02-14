@@ -34,7 +34,7 @@ const BottomNav = () => {
         {/* Logo area for desktop */}
         <div className="hidden md:flex items-center gap-3 px-4 mb-8">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <img src="/campuspaws-logo.png" alt="Logo" className="w-5 h-5 object-contain" />
+            <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain" />
           </div>
           <span className="font-bold text-lg tracking-tight">CampusPaws</span>
         </div>

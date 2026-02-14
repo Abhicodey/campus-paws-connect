@@ -89,7 +89,7 @@ const Login = () => {
             <div className="pt-12 px-6 text-center">
                 <div className="flex items-center justify-center gap-2 mb-4">
                     <img
-                        src="/campuspaws-logo.png"
+                        src="/logo.png"
                         alt="CampusPaws Official Logo"
                         className="h-12 w-12 object-contain"
                     />

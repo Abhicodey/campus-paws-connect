@@ -19,12 +19,26 @@
   }
 
   .dark {
-    --bg: 8 11 18;
-    --surface: 15 23 42;
-    --elevated: 30 41 59;
-    --border: 51 65 85;
-    --text: 226 232 240;
-    --text-muted: 148 163 184;
+    /* Converted from user provided hex for Tailwind alpha support */
+    /* #0b1220 */
+    --bg: 11 18 32;
+    /* #111a2e */
+    --surface: 17 26 46;
+    /* Slightly lighter than surface for elevation, interpolated or guessed based on palette - using #1f2a44 as elevated/card border base */
+    /* User said --card: #111a2e, I mapped surface to card. User said --border: #1f2a44 */
+    /* Actually, user said --card is #111a2e. My 'surface' is card. So surface = 17 26 46. */
+    /* User said --border is #1f2a44. So border = 31 42 68. */
+    /* I need an 'elevated' color. Let's make it slightly lighter than surface. 31 42 68 (same as border) is a good candidate for elevated surfaces/modals. */
+    --elevated: 31 42 68;
+
+    /* #1f2a44 */
+    --border: 31 42 68;
+
+    /* #e6edf6 */
+    --text: 230 237 246;
+
+    /* #9fb0d0 */
+    --text-muted: 159 176 208;
 
     color-scheme: dark;
   }

@@ -5,7 +5,7 @@ export function LayoutContainer({ children }: { children: React.ReactNode }) {
     <div className="w-full flex justify-center">
       <div className="
         w-full
-        max-w-6xl
+        max-w-[1100px]
         px-4
         sm:px-6
         lg:px-8

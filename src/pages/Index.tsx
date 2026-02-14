@@ -23,7 +23,7 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <div className="relative w-9 h-9 flex items-center justify-center">
                 <img
-                  src="/campuspaws-logo.png"
+                  src="/logo.png"
                   alt="Logo"
                   className="w-full h-full object-contain relative z-10"
                   onError={(e) => {
