@@ -66,3 +66,31 @@
     font-size: 17px;
   }
 }
+
+@layer utilities {
+  .card-auto {
+    @apply rounded-2xl border bg-card/60 backdrop-blur hover:bg-card/80 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl;
+  }
+
+  .interactive {
+    @apply cursor-pointer hover:-translate-y-0.5 active:scale-[0.98];
+  }
+
+  .logo-align {
+    transform: translateY(1px);
+  }
+
+  .logo-fix {
+    filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.25));
+  }
+}
+
+/* Global image optimization */
+img {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Dark mode logo glow */
+.dark img[alt="CampusPaws"] {
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.08));
+}

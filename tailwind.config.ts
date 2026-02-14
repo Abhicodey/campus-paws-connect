@@ -16,6 +16,12 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      screens: {
+        'landscape': { 'raw': '(orientation: landscape)' },
+        'portrait': { 'raw': '(orientation: portrait)' },
+        'ultrawide': { 'raw': '(min-aspect-ratio: 16/9)' },
+        'tall': { 'raw': '(max-aspect-ratio: 4/5)' },
+      },
       colors: {
         border: "hsl(var(--border) / <alpha-value>)",
         background: "hsl(var(--bg) / <alpha-value>)",
