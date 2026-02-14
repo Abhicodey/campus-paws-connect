@@ -11,10 +11,10 @@ export default function Community() {
 
         <div className="min-h-screen bg-background pb-24">
             <LayoutContainer>
-                <header className="bg-primary pt-8 pb-16 px-6 h-48 rounded-3xl relative z-0 mb-8">
+                <header className="bg-brand pt-8 pb-16 px-6 h-48 rounded-3xl relative z-0 mb-8">
                     <div className="relative z-10">
                         <h1 className="text-3xl font-bold text-white mb-2">Community</h1>
-                        <p className="text-primary-foreground/90 text-sm max-w-xs">
+                        <p className="text-white/90 text-sm max-w-xs">
                             Join hands to build a safer and happier campus for our furry friends. 🐾
                         </p>
                     </div>
@@ -29,7 +29,7 @@ export default function Community() {
                         <Card className="border-none shadow-lg overflow-hidden h-full">
                             <div className="bg-gradient-to-r from-orange-100 to-amber-50 h-2" />
                             <CardHeader className="pb-3">
-                                <CardTitle className="flex gap-2 items-center text-xl text-primary">
+                                <CardTitle className="flex gap-2 items-center text-xl text-brand">
                                     <Gift className="w-6 h-6" /> Support Campus Dogs
                                 </CardTitle>
                             </CardHeader>
@@ -121,9 +121,9 @@ export default function Community() {
                         <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
                             📜 Community Guidelines
                         </h3>
-                        <div className="bg-white rounded-xl p-5 shadow-sm border space-y-4">
-                            <p className="text-sm text-muted-foreground italic">To ensure safety of both students and dogs, please follow these:</p>
-                            <ul className="space-y-3 text-sm text-foreground/80">
+                        <div className="bg-surface rounded-xl p-5 shadow-sm border border-border space-y-4">
+                            <p className="text-sm text-muted italic">To ensure safety of both students and dogs, please follow these:</p>
+                            <ul className="space-y-3 text-sm text-primary">
                                 <li className="flex gap-3">
                                     <span className="text-red-500 font-bold">•</span> Do not hit, scare or chase dogs
                                 </li>

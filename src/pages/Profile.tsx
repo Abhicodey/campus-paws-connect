@@ -89,7 +89,7 @@ const Profile = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+          <Loader2 className="w-8 h-8 animate-spin text-brand mx-auto mb-3" />
           <p className="text-muted-foreground text-sm">Loading profile...</p>
         </div>
       </div>
@@ -102,7 +102,7 @@ const Profile = () => {
         <p className="text-muted-foreground mb-4">Unable to load profile</p>
         <button
           onClick={() => navigate("/login")}
-          className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-medium"
+          className="bg-brand text-white px-6 py-3 rounded-xl font-medium"
         >
           Sign In
         </button>
@@ -138,7 +138,7 @@ const Profile = () => {
 
           {/* Header & Main Info - Column 1 */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-primary pt-8 pb-16 px-6 h-40 rounded-3xl relative z-0">
+            <div className="bg-brand pt-8 pb-16 px-6 h-40 rounded-3xl relative z-0">
               <div className="flex justify-between items-start">
                 <div className="relative z-10 flex items-center gap-4">
 
@@ -147,7 +147,7 @@ const Profile = () => {
                     className={`relative group ${profileData ? '' : 'cursor-pointer'} w-fit`}
                     onClick={() => !profileData && setAvatarModalOpen(true)}
                   >
-                    <Avatar className="w-20 h-20 border-2 border-primary-foreground/30">
+                    <Avatar className="w-20 h-20 border-2 border-white/30">
                       <AvatarImage
                         key={(displayUser as any).avatar_updated_at || 'avatar'}
                         src={(() => {
@@ -157,7 +157,7 @@ const Profile = () => {
                         })()}
                         className="object-cover"
                       />
-                      <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-2xl">
+                      <AvatarFallback className="bg-white/20 text-white text-2xl">
                         {displayUser.username?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
                       </AvatarFallback>
                     </Avatar>
@@ -172,7 +172,7 @@ const Profile = () => {
                       onClick={() => setUsernameModalOpen(true)}
                     >
                       <div className="flex items-center gap-2">
-                        <h1 className="text-xl font-bold text-primary-foreground group-hover:underline decoration-white/50 underline-offset-4 decoration-2 transition-all">
+                        <h1 className="text-xl font-bold text-white group-hover:underline decoration-white/50 underline-offset-4 decoration-2 transition-all">
                           @{displayUser.username || 'Campus Pawer'}
                         </h1>
                         {profile?.username_status === 'approved' && (
@@ -184,18 +184,18 @@ const Profile = () => {
                           </span>
                         )}
                       </div>
-                      <p className="text-primary-foreground/60 text-xs mt-0.5 group-hover:text-primary-foreground/90 transition-colors">
+                      <p className="text-white/60 text-xs mt-0.5 group-hover:text-white/90 transition-colors">
                         Tap to edit
                       </p>
                     </div>
 
                     {roleLabel && (
-                      <p className="text-primary-foreground font-medium text-sm mt-1">{roleLabel}</p>
+                      <p className="text-white font-medium text-sm mt-1">{roleLabel}</p>
                     )}
 
                     <button
                       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                      className="absolute top-0 right-0 p-2 text-primary-foreground/80 hover:text-white transition-colors"
+                      className="absolute top-0 right-0 p-2 text-white/80 hover:text-white transition-colors"
                       title="Toggle Theme"
                     >
                       {theme === "dark" ? "🌞" : "🌙"}
@@ -218,7 +218,7 @@ const Profile = () => {
                     type="date"
                     value={birthdate}
                     onChange={(e) => setBirthdate(e.target.value)}
-                    className="w-full rounded-lg border px-3 py-2 bg-background text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full rounded-lg border px-3 py-2 bg-background text-foreground focus:ring-2 focus:ring-brand/20 outline-none"
                   />
 
                   <p className="text-xs text-muted-foreground mt-2">
@@ -227,7 +227,7 @@ const Profile = () => {
 
                   <button
                     onClick={saveBirthdate}
-                    className="mt-3 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                    className="mt-3 px-4 py-2 rounded-xl bg-brand text-white text-sm font-medium hover:bg-brand/90 transition-colors"
                   >
                     {profile?.birthdate ? "Update Birthdate" : "Save Birthdate"}
                   </button>
@@ -240,7 +240,7 @@ const Profile = () => {
               <h2 className="font-semibold text-foreground mb-3">Your Badges</h2>
               {badgesLoading ? (
                 <div className="flex items-center justify-center p-6">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <Loader2 className="w-6 h-6 animate-spin text-brand" />
                 </div>
               ) : badges.length > 0 ? (
                 <div className="grid grid-cols-3 gap-3">
@@ -284,7 +284,7 @@ const Profile = () => {
             <div className="card-elevated p-5">
               <div className="flex items-center justify-between">
                 <div className="text-center flex-1">
-                  <p className="text-3xl font-bold text-primary">{displayUser.points || 0}</p>
+                  <p className="text-3xl font-bold text-brand">{displayUser.points || 0}</p>
                   <p className="text-xs text-muted-foreground">Kindness Points</p>
                 </div>
                 <div className="w-px h-12 bg-border" />

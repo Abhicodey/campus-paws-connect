@@ -78,7 +78,7 @@ const Login = () => {
     if (authLoading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <Loader2 className="w-8 h-8 animate-spin text-brand" />
             </div>
         );
     }
@@ -156,7 +156,7 @@ const Login = () => {
                                         onChange={(e) => setFullName(e.target.value)}
                                         placeholder="Your name"
                                         className="w-full bg-muted rounded-xl py-3 pl-10 pr-4 text-foreground 
-                      placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                 </div>
                             </div>
@@ -209,7 +209,7 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="w-full bg-primary text-primary-foreground py-3 rounded-xl font-semibold 
+                            className="w-full bg-brand text-white py-3 rounded-xl font-semibold 
                 transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -224,7 +224,7 @@ const Login = () => {
                                 Don't have an account?{' '}
                                 <button
                                     onClick={() => setMode('signup')}
-                                    className="text-primary font-medium hover:underline"
+                                    className="text-brand font-medium hover:underline"
                                 >
                                     Sign up
                                 </button>

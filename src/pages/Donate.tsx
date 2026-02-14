@@ -19,9 +19,9 @@ export default function Donate() {
 
     return (
         <div className="min-h-screen bg-background pb-24">
-            <header className="bg-primary py-6 px-6 mb-6 shadow-md">
+            <header className="bg-brand py-6 px-6 mb-6 shadow-md">
                 <div className="flex items-center gap-4">
-                    <Link to="/community" className="text-primary-foreground/80 hover:text-white transition-colors">
+                    <Link to="/community" className="text-white/80 hover:text-white transition-colors">
                         <ArrowLeft className="w-6 h-6" />
                     </Link>
                     <h1 className="text-xl font-bold text-white">Donate</h1>
@@ -31,8 +31,8 @@ export default function Donate() {
             <div className="max-w-md mx-auto px-6 space-y-6">
 
                 <div className="text-center space-y-2">
-                    <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                        <Heart className="w-8 h-8 text-primary" fill="currentColor" />
+                    <div className="mx-auto w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mb-4">
+                        <Heart className="w-8 h-8 text-brand" fill="currentColor" />
                     </div>
                     <h2 className="text-2xl font-bold text-foreground">Reference Amount</h2>
                     <p className="text-muted-foreground text-sm">
@@ -45,10 +45,10 @@ export default function Donate() {
                         <button
                             key={option.amount}
                             onClick={() => handleDonate(option.amount)}
-                            className="bg-white border hover:border-primary/50 hover:bg-primary/5 active:bg-primary/10 transition-all rounded-xl p-4 flex items-center justify-between group shadow-sm"
+                            className="bg-surface border border-border hover:border-brand/50 hover:bg-brand/5 active:bg-brand/10 transition-all rounded-xl p-4 flex items-center justify-between group shadow-sm"
                         >
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg shadow-inner">
+                                <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center text-lg shadow-inner">
                                     {option.icon === 'meals' ? <span className="text-xl">🥘</span> : option.icon}
                                 </div>
                                 <div className="text-left">
@@ -56,7 +56,7 @@ export default function Donate() {
                                     <p className="text-xs text-muted-foreground">{option.label}</p>
                                 </div>
                             </div>
-                            <CreditCard className="w-5 h-5 text-gray-300 group-hover:text-primary transition-colors" />
+                            <CreditCard className="w-5 h-5 text-muted-foreground group-hover:text-brand transition-colors" />
                         </button>
                     ))}
                 </div>

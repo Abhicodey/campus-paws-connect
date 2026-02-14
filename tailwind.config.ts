@@ -17,15 +17,30 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "rgb(var(--border) / <alpha-value>)",
+        background: "rgb(var(--bg) / <alpha-value>)",
+        foreground: "rgb(var(--text) / <alpha-value>)", // Mapping 'foreground' to 'text' to maintain compatibility where 'foreground' is used
+
+        // Semantic palette
+        surface: "rgb(var(--surface) / <alpha-value>)",
+        elevated: "rgb(var(--elevated) / <alpha-value>)",
+
+        // Re-mapping Primary to Text as per user request (Brand color moved to 'brand' or handled via class override if needed, 
+        // but user specifically asked for text-primary to replace text-gray-500)
         primary: {
+          DEFAULT: "rgb(var(--text) / <alpha-value>)", // PRIMARY TEXT
+          foreground: "rgb(var(--bg) / <alpha-value>)",
+        },
+        muted: {
+          DEFAULT: "rgb(var(--text-muted) / <alpha-value>)",
+          foreground: "rgb(var(--text) / <alpha-value>)",
+        },
+        // Brand color for buttons (aliased to old primary variable which is still orange in CSS)
+        brand: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
+
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
@@ -33,10 +48,6 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",

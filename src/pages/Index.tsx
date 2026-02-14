@@ -30,7 +30,7 @@ const Index = () => {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
-                <PawPrint className="w-6 h-6 text-primary absolute" />
+                <PawPrint className="w-6 h-6 text-brand absolute" />
               </div>
 
               <div>
@@ -93,7 +93,7 @@ const Index = () => {
         <div className="px-6 mt-8">
           <Link
             to="/scan"
-            className="flex items-center justify-center gap-3 w-full bg-primary text-primary-foreground 
+            className="flex items-center justify-center gap-3 w-full bg-brand text-white 
               py-4 px-6 rounded-2xl font-semibold text-lg shadow-warm transition-all 
               duration-200 hover:opacity-90 active:scale-[0.98]"
           >
