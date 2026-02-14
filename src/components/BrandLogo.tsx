@@ -6,10 +6,10 @@ type Props = {
 export default function BrandLogo({ variant = "header", className = "" }: Props) {
 
     const sizes = {
-        sidebar: "h-9 w-9 md:h-10 md:w-10 xl:h-11 xl:w-11",
-        header: "h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10",
-        mobile: "h-7 w-7",
-        hero: "h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 lg:h-24 lg:w-24"
+        sidebar: "h-10 w-10 md:h-12 md:w-12 xl:h-14 xl:w-14",
+        header: "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16",
+        mobile: "h-9 w-9",
+        hero: "h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 lg:h-40 lg:w-40"
     };
 
     return (

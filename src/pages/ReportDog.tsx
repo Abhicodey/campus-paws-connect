@@ -4,7 +4,7 @@ import { Camera, MapPin, Loader2, AlertCircle, CheckCircle2, Phone, Stethoscope,
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import LayoutContainer from '@/components/layout-container';
+import { LayoutContainer } from '@/components/layout-container';
 import BrandLogo from '@/components/BrandLogo';
 import { motion } from 'framer-motion';
 
