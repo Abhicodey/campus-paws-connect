@@ -106,7 +106,6 @@ const Profile = () => {
         >
           Sign In
         </button>
-        <BottomNav />
       </div>
     );
   }
@@ -345,7 +344,6 @@ const Profile = () => {
         <EditBirthdayModal user={authUser} profile={profile} onClose={() => setBirthdayModalOpen(false)} />
       )}
 
-      <BottomNav />
     </div>
   );
 };

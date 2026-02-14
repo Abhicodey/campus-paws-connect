@@ -277,7 +277,6 @@ const DogProfile = () => {
         </p>
       </div>
 
-      <BottomNav />
     </div>
   );
 };

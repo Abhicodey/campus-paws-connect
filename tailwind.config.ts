@@ -17,28 +17,30 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        border: "rgb(var(--border) / <alpha-value>)",
-        background: "rgb(var(--bg) / <alpha-value>)",
-        foreground: "rgb(var(--text) / <alpha-value>)", // Mapping 'foreground' to 'text' to maintain compatibility where 'foreground' is used
+        border: "hsl(var(--border) / <alpha-value>)",
+        background: "hsl(var(--bg) / <alpha-value>)",
+        foreground: "hsl(var(--text) / <alpha-value>)", // Mapping 'foreground' to 'text' for compatibility
 
         // Semantic palette
-        surface: "rgb(var(--surface) / <alpha-value>)",
-        elevated: "rgb(var(--elevated) / <alpha-value>)",
+        surface: "hsl(var(--surface) / <alpha-value>)",
+        elevated: "hsl(var(--elevated) / <alpha-value>)",
 
-        // Re-mapping Primary to Text as per user request (Brand color moved to 'brand' or handled via class override if needed, 
-        // but user specifically asked for text-primary to replace text-gray-500)
+        // Re-mapping Primary to Text
         primary: {
-          DEFAULT: "rgb(var(--text) / <alpha-value>)", // PRIMARY TEXT
-          foreground: "rgb(var(--bg) / <alpha-value>)",
+          DEFAULT: "hsl(var(--text) / <alpha-value>)", // PRIMARY TEXT
+          foreground: "hsl(var(--bg) / <alpha-value>)",
         },
         muted: {
-          DEFAULT: "rgb(var(--text-muted) / <alpha-value>)",
-          foreground: "rgb(var(--text) / <alpha-value>)",
+          DEFAULT: "hsl(var(--text-muted) / <alpha-value>)",
+          foreground: "hsl(var(--text) / <alpha-value>)",
         },
-        // Brand color for buttons (aliased to old primary variable which is still orange in CSS)
+        // Brand color (orange)
         brand: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "hsl(var(--accent))", // Using new --accent variable which is orange
+          foreground: "hsl(var(--bg))", // Text on brand should be dark or light? Usually white.
+          // User said: --accent: 24 95% 53% (Orange).
+          // If I use --accent for brand, I should use that.
+          // Previous brand was var(--primary).
         },
 
         secondary: {

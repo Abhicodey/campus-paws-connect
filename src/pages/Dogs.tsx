@@ -101,7 +101,6 @@ const Dogs = () => {
         <Plus className="w-6 h-6" />
       </Link>
 
-      <BottomNav />
     </div>
   );
 };

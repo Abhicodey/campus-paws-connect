@@ -107,11 +107,13 @@ const ScanQR = () => {
 
         {/* Official Logo */}
         <div className="flex items-center justify-center gap-2 mt-4">
-          <img
-            src="/logo.png"
-            alt="CampusPaws Official Logo"
-            className="h-16 w-16 object-contain"
-          />
+          <div className="w-16 h-16 rounded-full bg-card flex items-center justify-center overflow-hidden border border-border shadow-sm">
+            <img
+              src="/logo.png"
+              alt="CampusPaws Official Logo"
+              className="w-10 h-10 object-contain"
+            />
+          </div>
         </div>
 
         {/* Instructions */}
@@ -182,7 +184,6 @@ const ScanQR = () => {
         )}
       </div>
 
-      <BottomNav />
 
       <style>{`
         @keyframes scan {

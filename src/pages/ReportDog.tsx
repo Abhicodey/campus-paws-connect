@@ -307,7 +307,6 @@ const ReportDog = () => {
                 </button>
             </form>
 
-            <BottomNav />
         </div>
     );
 };

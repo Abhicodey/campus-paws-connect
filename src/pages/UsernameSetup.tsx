@@ -41,11 +41,13 @@ const UsernameSetup = () => {
             <div className="min-h-screen bg-background flex flex-col">
                 <div className="flex-1 flex flex-col items-center justify-center px-6">
                     <div className="flex items-center justify-center gap-2 mb-6">
-                        <img
-                            src="/logo.png"
-                            alt="CampusPaws Official Logo"
-                            className="h-16 w-16 object-contain"
-                        />
+                        <div className="w-16 h-16 rounded-full bg-card flex items-center justify-center overflow-hidden border border-border shadow-sm">
+                            <img
+                                src="/logo.png"
+                                alt="CampusPaws Official Logo"
+                                className="w-10 h-10 object-contain"
+                            />
+                        </div>
                     </div>
 
                     <div className="card-elevated p-6 max-w-sm w-full text-center">

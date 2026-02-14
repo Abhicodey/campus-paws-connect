@@ -285,7 +285,6 @@ const Gallery = () => {
         </div>
       )}
 
-      <BottomNav />
     </div>
   );
 };

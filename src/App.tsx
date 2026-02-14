@@ -24,7 +24,7 @@ import Community from "./pages/Community";
 import Donate from "./pages/Donate";
 import CreateAnnouncement from "./pages/CreateAnnouncement";
 import NotFound from "./pages/NotFound";
-import MainLayout from "./components/MainLayout";
+import AppLayout from "@/layouts/AppLayout";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,22 +43,25 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <MainLayout>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/setup-username" element={<UsernameSetup />} />
+            <Routes>
+              {/* Standalone Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/setup-username" element={<UsernameSetup />} />
 
-                {/* Semi-public routes (viewable without auth, but actions require auth) */}
+              {/* App Layout Routes */}
+              <Route element={<AppLayout />}>
+                {/* Public & Semi-public */}
                 <Route path="/" element={<Index />} />
                 <Route path="/dogs" element={<Dogs />} />
-                {/* QR Code redirect route - must come before /dog/:id */}
                 <Route path="/dog/qr/:qrCode" element={<DogProfileByQR />} />
                 <Route path="/dog/:id" element={<DogProfile />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/gallery" element={<Gallery />} />
+                <Route path="/guidelines" element={<Guidelines />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/donate" element={<Donate />} />
 
-                {/* Protected routes */}
+                {/* Protected Routes */}
                 <Route path="/profile" element={
                   <ProtectedRoute>
                     <Profile />
@@ -80,7 +83,7 @@ const App = () => (
                   </ProtectedRoute>
                 } />
 
-                {/* Admin routes */}
+                {/* Admin Routes */}
                 <Route path="/admin" element={
                   <ProtectedRoute>
                     <AdminPanel />
@@ -92,15 +95,10 @@ const App = () => (
                   </ProtectedRoute>
                 } />
 
-                {/* Guidelines - public route */}
-                <Route path="/guidelines" element={<Guidelines />} />
-                <Route path="/guidelines" element={<Guidelines />} />
-                <Route path="/community" element={<Community />} />
-                <Route path="/donate" element={<Donate />} />
-
+                {/* Fallback */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-            </MainLayout>
+              </Route>
+            </Routes>
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>

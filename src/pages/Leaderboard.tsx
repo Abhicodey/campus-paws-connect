@@ -58,7 +58,6 @@ const Leaderboard = () => {
         </div>
       </LayoutContainer>
 
-      <BottomNav />
     </div>
   );
 };

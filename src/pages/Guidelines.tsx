@@ -33,7 +33,6 @@ export default function Guidelines() {
                 </Card>
 
             </div>
-            <BottomNav />
         </div>
     );
 }

@@ -175,7 +175,6 @@ const Index = () => {
         </div>
       </LayoutContainer>
 
-      <BottomNav />
     </div>
   );
 };

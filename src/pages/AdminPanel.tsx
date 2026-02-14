@@ -688,7 +688,6 @@ const AdminPanel = () => {
         )}
       </div>
 
-      <BottomNav />
     </div>
   );
 };

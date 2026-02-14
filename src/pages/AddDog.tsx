@@ -319,7 +319,6 @@ const AddDog = () => {
         </button>
       </form>
 
-      <BottomNav />
     </div>
   );
 };

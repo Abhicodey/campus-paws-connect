@@ -73,7 +73,6 @@ export default function Donate() {
                 </div>
 
             </div>
-            <BottomNav />
         </div>
     );
 }

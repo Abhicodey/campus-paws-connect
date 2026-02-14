@@ -51,8 +51,7 @@ export default function EditUsernameModal({ user, profile, onClose }: EditUserna
                 }
             }
 
-            const { error } = await supabase
-                .from("users")
+            const { error } = await (supabase.from("users") as any)
                 .update(updates)
                 .eq("id", user.id);
 

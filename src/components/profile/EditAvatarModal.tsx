@@ -50,8 +50,7 @@ export default function EditAvatarModal({ user, profile, onClose }: EditAvatarMo
             const publicUrl = publicUrlData.publicUrl;
 
             // Update directly
-            const { error, data: updateData } = await supabase
-                .from("users")
+            const { error, data: updateData } = await (supabase.from("users") as any)
                 .update({
                     avatar_url: publicUrl,
                     avatar_status: profile.role === 'president' ? 'approved' : 'pending',
