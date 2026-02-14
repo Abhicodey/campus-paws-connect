@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { LayoutContainer } from "@/components/layout-container"; // Added import
 
 const Gallery = () => {
   const navigate = useNavigate();
@@ -133,74 +134,92 @@ const Gallery = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <header className="pt-6 px-6">
-        <h1 className="text-2xl font-bold text-foreground">Campus Gallery</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Cute moments from our campus friends
-        </p>
-      </header>
+    <div className="min-h-screen bg-background">
+      <LayoutContainer>
+        {/* Header */}
+        <header className="pt-6 px-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Campus Gallery</h1>
+              <p className="text-muted-foreground text-sm mt-1">
+                Memories with our furry friends 📸
+              </p>
+            </div>
+            {/* Upload Button (Header) - Visible on desktop */}
+            <div className="hidden md:block">
+              <button
+                onClick={() => isPresident ? fileInputRef.current?.click() : setShowUploadNote(true)}
+                disabled={!canParticipate}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                Upload Photo
+              </button>
+            </div>
+          </div>
+        </header>
 
-      {/* Username Status Banner */}
-      <UsernameStatusBanner className="mx-6 mt-4" />
+        {/* Username Status Banner */}
+        <div className="px-6 mt-4">
+          <UsernameStatusBanner />
+        </div>
 
-      {/* Gallery Grid */}
-      <div className="px-4 mt-6">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
-            <p className="text-muted-foreground text-sm">Loading gallery...</p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>Something went wrong. Please try again.</p>
-          </div>
-        ) : images && images.length > 0 ? (
-          <div style={{ columnCount: 2, columnGap: '8px' }} className="sm:columns-3">
-            {images.map((image) => (
-              <div key={image.id} style={{ breakInside: 'avoid', marginBottom: '8px' }}>
-                <GalleryImage
-                  src={image.display_url}
-                  alt="Campus dog"
-                  imageId={image.id}
-                  uploaderId={image.user_id}
-                  username={image.users?.username}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>No photos yet. Be the first to share! 📸</p>
-          </div>
-        )}
-      </div>
+        {/* Gallery Grid */}
+        <div className="px-6 mt-6 max-w-3xl mx-auto">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+              <p className="text-muted-foreground text-sm">Loading memories...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>Something went wrong. Please try again.</p>
+            </div>
+          ) : images && images.length > 0 ? (
+            <div className="columns-2 md:columns-3 gap-4 space-y-4">
+              {images.map((image) => (
+                <div key={image.id} className="break-inside-avoid">
+                  <GalleryImage
+                    imageId={image.id}
+                    src={image.display_url}
+                    alt="Campus dog"
+                    username={image.users?.username || 'Anonymous'}
+                    uploaderId={image.user_id}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No photos yet. Be the first to share a memory! 📸</p>
+            </div>
+          )}
+        </div>
+      </LayoutContainer>
 
-      {/* Upload Button */}
-      <div className="px-6 mt-6">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        accept="image/*"
+        className="hidden"
+      />
+
+      {/* Upload FAB (Mobile) */}
+      <div className="fixed bottom-24 right-6 md:hidden">
         <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="w-full flex items-center justify-center gap-2 bg-secondary text-secondary-foreground 
-            py-3 px-6 rounded-2xl font-medium transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+          onClick={() => isPresident ? fileInputRef.current?.click() : setShowUploadNote(true)}
+          disabled={!canParticipate || uploading}
+          className="w-14 h-14 bg-primary text-primary-foreground
+            rounded-full shadow-warm flex items-center justify-center transition-all
+            hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed z-50"
         >
           {uploading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Uploading...
-            </>
+            <Loader2 className="w-6 h-6 animate-spin" />
           ) : (
             <>
               <Upload className="w-5 h-5" />
-              Upload Photo
             </>
           )}
         </button>

@@ -13,8 +13,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
     // For now, showing on all pages as requested
 
     return (
-        <div className="min-h-screen w-full flex justify-center bg-background text-foreground">
-            <div className="w-full max-w-5xl px-4 sm:px-6 md:px-8 flex flex-col min-h-screen relative">
+        <div className="min-h-screen w-full flex justify-center bg-background text-foreground md:pl-64">
+            <div className="w-full flex flex-col min-h-screen relative pb-20 md:pb-0">
                 <main className="flex-1 w-full flex flex-col">
                     {children}
                 </main>

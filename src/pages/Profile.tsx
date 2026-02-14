@@ -15,6 +15,7 @@ import { useRecentNotifications } from "@/hooks/useRecentNotifications";
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "@/components/ThemeProvider"; // Added import
 import { toast } from "sonner"; // Added import
+import { LayoutContainer } from "@/components/layout-container"; // Added import
 
 // Helper for cooldown text
 function getCooldownRemaining(date?: string) {
@@ -132,205 +133,206 @@ const Profile = () => {
   /* -------------------- UI -------------------- */
   return (
     <div className="bg-background pb-16 space-y-5">
-      {/* Header */}
-      <div className="bg-primary pt-8 pb-16 px-6 h-40 rounded-b-3xl relative z-0">
-        <div className="flex justify-between items-start">
-          <div className="relative z-10 flex items-center gap-4">
+      <LayoutContainer>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
-            {/* Clickable Avatar */}
-            <div
-              className={`relative group ${profileData ? '' : 'cursor-pointer'} w-fit`}
-              onClick={() => !profileData && setAvatarModalOpen(true)}
-            >
-              <Avatar className="w-20 h-20 border-2 border-primary-foreground/30">
-                <AvatarImage
-                  key={(displayUser as any).avatar_updated_at || 'avatar'}
-                  src={(() => {
-                    if (!displayUser.avatar_url) return undefined;
-                    // Check if it already has params (like Google URLs)
-                    const separator = displayUser.avatar_url.includes('?') ? '&' : '?';
-                    return `${displayUser.avatar_url}${separator}t=${(displayUser as any).avatar_updated_at || Date.now()}`;
-                  })()}
-                  className="object-cover"
-                />
-                <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-2xl">
-                  {displayUser.username?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
-                </AvatarFallback>
-              </Avatar>
-              {/* Overlay hint */}
-              <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <Edit3 className="w-6 h-6 text-white" />
+          {/* Header & Main Info - Column 1 */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-primary pt-8 pb-16 px-6 h-40 rounded-3xl relative z-0">
+              <div className="flex justify-between items-start">
+                <div className="relative z-10 flex items-center gap-4">
+
+                  {/* Clickable Avatar */}
+                  <div
+                    className={`relative group ${profileData ? '' : 'cursor-pointer'} w-fit`}
+                    onClick={() => !profileData && setAvatarModalOpen(true)}
+                  >
+                    <Avatar className="w-20 h-20 border-2 border-primary-foreground/30">
+                      <AvatarImage
+                        key={(displayUser as any).avatar_updated_at || 'avatar'}
+                        src={(() => {
+                          if (!displayUser.avatar_url) return undefined;
+                          const separator = displayUser.avatar_url.includes('?') ? '&' : '?';
+                          return `${displayUser.avatar_url}${separator}t=${(displayUser as any).avatar_updated_at || Date.now()}`;
+                        })()}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-2xl">
+                        {displayUser.username?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <Edit3 className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div
+                      className="group cursor-pointer"
+                      onClick={() => setUsernameModalOpen(true)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold text-primary-foreground group-hover:underline decoration-white/50 underline-offset-4 decoration-2 transition-all">
+                          @{displayUser.username || 'Campus Pawer'}
+                        </h1>
+                        {profile?.username_status === 'approved' && (
+                          <Check className="w-4 h-4 text-green-300" />
+                        )}
+                        {profile?.username_status === 'pending' && (
+                          <span className="bg-yellow-500/20 text-yellow-200 text-[10px] px-1.5 py-0.5 rounded border border-yellow-500/30">
+                            PENDING
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-primary-foreground/60 text-xs mt-0.5 group-hover:text-primary-foreground/90 transition-colors">
+                        Tap to edit
+                      </p>
+                    </div>
+
+                    {roleLabel && (
+                      <p className="text-primary-foreground font-medium text-sm mt-1">{roleLabel}</p>
+                    )}
+
+                    <button
+                      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                      className="absolute top-0 right-0 p-2 text-primary-foreground/80 hover:text-white transition-colors"
+                      title="Toggle Theme"
+                    >
+                      {theme === "dark" ? "🌞" : "🌙"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div>
-              {/* Clickable Username */}
-              <div
-                className="group cursor-pointer"
-                onClick={() => setUsernameModalOpen(true)}
-              >
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-primary-foreground group-hover:underline decoration-white/50 underline-offset-4 decoration-2 transition-all">
-                    @{displayUser.username || 'Campus Pawer'}
-                  </h1>
-                  {profile?.username_status === 'approved' && (
-                    <Check className="w-4 h-4 text-green-300" />
-                  )}
-                  {profile?.username_status === 'pending' && (
-                    <span className="bg-yellow-500/20 text-yellow-200 text-[10px] px-1.5 py-0.5 rounded border border-yellow-500/30">
-                      PENDING
-                    </span>
-                  )}
+            {/* Inline Birthday Section */}
+            {isOwnProfile && (
+              <div className="px-1 relative z-10 -mt-10">
+                <div className="p-4 rounded-2xl border bg-card shadow-sm">
+                  <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    Birthdate 🎂
+                    {profile?.birthdate && <span className="text-xs font-normal text-muted-foreground">(Saved)</span>}
+                  </h3>
+
+                  <input
+                    type="date"
+                    value={birthdate}
+                    onChange={(e) => setBirthdate(e.target.value)}
+                    className="w-full rounded-lg border px-3 py-2 bg-background text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
+                  />
+
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Optional — Used only to send you a birthday wish from CampusPaws 🐾
+                  </p>
+
+                  <button
+                    onClick={saveBirthdate}
+                    className="mt-3 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    {profile?.birthdate ? "Update Birthdate" : "Save Birthdate"}
+                  </button>
                 </div>
-                <p className="text-primary-foreground/60 text-xs mt-0.5 group-hover:text-primary-foreground/90 transition-colors">
-                  Tap to edit
-                </p>
               </div>
+            )}
 
-              {roleLabel && (
-                <p className="text-primary-foreground font-medium text-sm mt-1">{roleLabel}</p>
+            {/* Badges */}
+            <div className="px-1">
+              <h2 className="font-semibold text-foreground mb-3">Your Badges</h2>
+              {badgesLoading ? (
+                <div className="flex items-center justify-center p-6">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : badges.length > 0 ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {badges.map((badge, index) => (
+                    <Badge key={index} icon={badge.icon} label={badge.label} earned={badge.earned} />
+                  ))}
+                </div>
+              ) : (
+                <div className="card-warm p-6 text-center text-muted-foreground">
+                  <p className="text-sm">No badges yet. Start caring for dogs to earn badges! 🐾</p>
+                </div>
               )}
+            </div>
 
-              {/* Dark Mode Toggle */}
+            {/* Actions */}
+            <div className="px-1 space-y-3">
+              {isAdmin && (
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="w-full flex items-center justify-center gap-2 bg-accent text-accent-foreground py-3 rounded-xl 
+                    font-medium transition-all hover:opacity-90 active:scale-[0.98]"
+                >
+                  <Award className="w-5 h-5" />
+                  President Panel
+                </button>
+              )}
               <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="absolute top-0 right-0 p-2 text-primary-foreground/80 hover:text-white transition-colors"
-                title="Toggle Theme"
+                onClick={handleSignOut}
+                className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl 
+                  font-medium transition-all active:scale-[0.98]"
               >
-                {theme === "dark" ? "🌞" : "🌙"}
+                <LogOut className="w-5 h-5" />
+                Sign Out
               </button>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Inline Birthday Section (Request 1) */}
-      {isOwnProfile && (
-        <div className="px-6 -mt-4 mb-6 relative z-10">
-          <div className="p-4 rounded-2xl border bg-card shadow-sm">
-            <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-              Birthdate 🎂
-              {profile?.birthdate && <span className="text-xs font-normal text-muted-foreground">(Saved)</span>}
-            </h3>
-
-            <input
-              type="date"
-              value={birthdate}
-              onChange={(e) => setBirthdate(e.target.value)}
-              className="w-full rounded-lg border px-3 py-2 bg-background text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
-            />
-
-            <p className="text-xs text-muted-foreground mt-2">
-              Optional — Used only to send you a birthday wish from CampusPaws 🐾
-            </p>
-
-            <button
-              onClick={saveBirthdate}
-              className="mt-3 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              {profile?.birthdate ? "Update Birthdate" : "Save Birthdate"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Stats Card */}
-      <div className="px-6 -mt-10">
-        <div className="card-elevated p-5">
-          <div className="flex items-center justify-between">
-            <div className="text-center flex-1">
-              <p className="text-3xl font-bold text-primary">{displayUser.points || 0}</p>
-              <p className="text-xs text-muted-foreground">Kindness Points</p>
-            </div>
-            <div className="w-px h-12 bg-border" />
-            <div className="text-center flex-1">
-              {profileLoading ? (
-                <Loader2 className="w-6 h-6 animate-spin text-secondary mx-auto" />
-              ) : (
-                <p className="text-3xl font-bold text-secondary">#{rank || '-'}</p>
-              )}
-              <p className="text-xs text-muted-foreground">Leaderboard Rank</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Badges */}
-      <div className="px-6 mt-6">
-        <h2 className="font-semibold text-foreground mb-3">Your Badges</h2>
-        {badgesLoading ? (
-          <div className="flex items-center justify-center p-6">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
-          </div>
-        ) : badges.length > 0 ? (
-          <div className="grid grid-cols-3 gap-3">
-            {badges.map((badge, index) => (
-              <Badge key={index} icon={badge.icon} label={badge.label} earned={badge.earned} />
-            ))}
-          </div>
-        ) : (
-          <div className="card-warm p-6 text-center text-muted-foreground">
-            <p className="text-sm">No badges yet. Start caring for dogs to earn badges! 🐾</p>
-          </div>
-        )}
-      </div>
-
-      {/* Recent Notifications */}
-      <div className="px-6 mt-6">
-        <h2 className="font-semibold text-foreground mb-3">Recent Updates</h2>
-        {notificationsLoading ? (
-          <div className="card-warm p-6 text-center">
-            <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
-          </div>
-        ) : notifications && notifications.length > 0 ? (
-          <div className="card-warm p-5">
-            <div className="space-y-3">
-              {notifications.map((n: any) => (
-                <div
-                  key={n.id}
-                  className="text-sm text-foreground/80 border-b border-border/40 pb-2 last:border-none last:pb-0"
-                >
-                  <p className="font-medium text-foreground">{n.title || "Notification"}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
-                  <p className="text-[10px] text-muted-foreground/60 mt-1">
-                    {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                  </p>
+          {/* Stats & Activity - Column 2 & 3 */}
+          <div className="md:col-span-1 lg:col-span-2 space-y-6">
+            {/* Stats Card */}
+            <div className="card-elevated p-5">
+              <div className="flex items-center justify-between">
+                <div className="text-center flex-1">
+                  <p className="text-3xl font-bold text-primary">{displayUser.points || 0}</p>
+                  <p className="text-xs text-muted-foreground">Kindness Points</p>
                 </div>
-              ))}
+                <div className="w-px h-12 bg-border" />
+                <div className="text-center flex-1">
+                  {profileLoading ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-secondary mx-auto" />
+                  ) : (
+                    <p className="text-3xl font-bold text-secondary">#{rank || '-'}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">Leaderboard Rank</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Notifications */}
+            <div>
+              <h2 className="font-semibold text-foreground mb-3">Recent Updates</h2>
+              {notificationsLoading ? (
+                <div className="card-warm p-6 text-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
+                </div>
+              ) : notifications && notifications.length > 0 ? (
+                <div className="card-warm p-5">
+                  <div className="space-y-3">
+                    {notifications.map((n: any) => (
+                      <div
+                        key={n.id}
+                        className="text-sm text-foreground/80 border-b border-border/40 pb-2 last:border-none last:pb-0"
+                      >
+                        <p className="font-medium text-foreground">{n.title || "Notification"}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                        <p className="text-[10px] text-muted-foreground/60 mt-1">
+                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="card-warm p-6 text-center text-muted-foreground">
+                  <p className="text-sm">No new notifications. Everything is quiet! 🤫</p>
+                </div>
+              )}
             </div>
           </div>
-        ) : (
-          <div className="card-warm p-6 text-center text-muted-foreground">
-            <p className="text-sm">No new notifications. Everything is quiet! 🤫</p>
-          </div>
-        )}
-      </div>
 
-      {/* Admin Button */}
-      {isAdmin && (
-        <div className="px-6 mt-6">
-          <button
-            onClick={() => navigate('/admin')}
-            className="w-full flex items-center justify-center gap-2 bg-accent text-accent-foreground py-3 rounded-xl 
-              font-medium transition-all hover:opacity-90 active:scale-[0.98]"
-          >
-            <Award className="w-5 h-5" />
-            President Panel
-          </button>
         </div>
-      )}
-
-      {/* Logout */}
-      <div className="px-6 mt-6">
-        <button
-          onClick={handleSignOut}
-          className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl 
-            font-medium transition-all active:scale-[0.98]"
-        >
-          <LogOut className="w-5 h-5" />
-          Sign Out
-        </button>
-      </div>
+      </LayoutContainer>
 
       {/* Modals */}
       {usernameModalOpen && authUser && (
