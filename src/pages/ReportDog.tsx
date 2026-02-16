@@ -1,4 +1,4 @@
-fimport { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, MapPin, Loader2, AlertCircle, CheckCircle2, Phone, Stethoscope, Heart, Info } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -110,6 +110,7 @@ const ReportDog = () => {
             // 2. Create dog record
             const { error: dogError } = await supabase
                 .from('dogs')
+                // @ts-ignore
                 .insert({
                     temporary_name: temporaryName.trim() || null,
                     description: description || `Condition: ${condition}`,
