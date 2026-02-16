@@ -119,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Auto-remove expired suspension
                 await supabase
                     .from("users")
+                    // @ts-ignore
                     .update({ is_suspended: false, suspended_until: null, suspended_reason: null } as any)
                     .eq("id", userId);
                 profileData = { ...profileData, is_suspended: false, suspended_until: null, suspended_reason: null };
@@ -144,6 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             const { error: updateError } = await supabase
                 .from("users")
+                // @ts-ignore
                 .update({ requested_username: tempUsername } as any)
                 .eq("id", userId);
 
@@ -233,8 +235,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
         );
 
+        // REALTIME SUBSCRIPTION FOR PROFILE UPDATES
+        // This ensures that if the username/avatar is updated in the DB, the UI reflects it instantly
+        let profileSubscription: any = null;
+
+        supabase.auth.getSession().then(({ data }) => {
+            const userId = data.session?.user?.id;
+            if (userId) {
+                profileSubscription = supabase
+                    .channel('public:users')
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: 'UPDATE',
+                            schema: 'public',
+                            table: 'users',
+                            filter: `id=eq.${userId}`,
+                        },
+                        (payload) => {
+                            console.log("Realtime profile update:", payload.new);
+                            setProfile(payload.new as UserProfile);
+                        }
+                    )
+                    .subscribe();
+            }
+        });
+
         return () => {
             listener.subscription.unsubscribe();
+            if (profileSubscription) supabase.removeChannel(profileSubscription);
         };
     }, []);
 

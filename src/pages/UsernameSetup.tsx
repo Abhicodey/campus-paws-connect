@@ -19,7 +19,7 @@ const UsernameSetup = () => {
     // Show loading
     if (authLoading || profileLoading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="min-h-dvh bg-background flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
@@ -38,7 +38,7 @@ const UsernameSetup = () => {
     // If user already requested a username, show pending state
     if (profile?.requested_username && !profile?.username_verified) {
         return (
-            <div className="min-h-screen bg-background flex flex-col">
+            <div className="min-h-dvh bg-background flex flex-col">
                 <div className="flex-1 flex flex-col items-center justify-center px-6">
                     <div className="flex items-center justify-center gap-2 mb-6">
                         <div className="w-16 h-16 rounded-full bg-card flex items-center justify-center overflow-hidden border border-border shadow-sm">
@@ -135,7 +135,7 @@ const UsernameSetup = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className="min-h-dvh bg-background flex flex-col">
             <div className="flex-1 flex flex-col items-center justify-center px-6">
                 <div className="flex items-center justify-center gap-2 mb-6">
                     <img

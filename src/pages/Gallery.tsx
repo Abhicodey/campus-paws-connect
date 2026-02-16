@@ -172,7 +172,7 @@ const Gallery = () => {
             <p>Something went wrong. Please try again.</p>
           </div>
         ) : images && images.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3">
             {images.map((image) => (
               <div key={image.id} className="aspect-square relative group overflow-hidden rounded-xl bg-muted">
                 <GalleryImage

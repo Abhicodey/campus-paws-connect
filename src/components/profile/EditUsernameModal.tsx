@@ -57,6 +57,11 @@ export default function EditUsernameModal({ user, profile, onClose }: EditUserna
 
             if (error) throw error;
 
+            // Refresh session to update metadata
+            const { error: sessionError } = await supabase.auth.refreshSession();
+            if (sessionError) console.error("Session refresh error:", sessionError);
+            await supabase.auth.getUser(); // Force update user object
+
             if (profile.role === 'president') {
                 toast.success("Username updated successfully! 🛡️");
             } else {

@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { getGalleryImageUrl } from '@/lib/galleryUtils';
 
@@ -23,6 +24,32 @@ export interface GalleryImageWithUrl extends GalleryImageRow {
 }
 
 export function useGallery() {
+    const queryClient = useQueryClient();
+
+    // Realtime subscription for gallery
+    useEffect(() => {
+        const channel = supabase
+            .channel('gallery-updates')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'gallery_images',
+                    filter: 'status=eq.approved' // Only listen for approved images
+                },
+                () => {
+                    console.log('Gallery updated, invalidating query...');
+                    queryClient.invalidateQueries({ queryKey: ['gallery'] });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [queryClient]);
+
     return useQuery({
         queryKey: ['gallery'],
         queryFn: async () => {
@@ -51,6 +78,6 @@ export function useGallery() {
                 display_url: getGalleryImageUrl(img.file_path),
             })) as GalleryImageWithUrl[];
         },
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60, // 1 minute (reduced from 5)
     });
 }

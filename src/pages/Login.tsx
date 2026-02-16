@@ -77,14 +77,14 @@ const Login = () => {
 
     if (authLoading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="min-h-dvh bg-background flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-brand" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className="min-h-dvh bg-background flex flex-col">
             {/* Header */}
             <div className="pt-12 px-6 text-center">
                 <div className="flex items-center justify-center gap-2 mb-4">
