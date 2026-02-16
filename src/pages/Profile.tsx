@@ -287,12 +287,12 @@ const Profile = () => {
       </div>
 
       {/* 6. Recent Activity (Real Actions) */}
-      <div className="px-1">
-        <h2 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-          <Dog className="w-5 h-5 text-primary" />
-          Recent Activity
-        </h2>
-        {profileData?.recentActions && profileData.recentActions.length > 0 ? (
+      {profileData?.recentActions && profileData.recentActions.length > 0 && (
+        <div className="px-1">
+          <h2 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Dog className="w-5 h-5 text-primary" />
+            Recent Activity
+          </h2>
           <ResponsiveCard className="p-0 overflow-hidden text-left">
             <div className="divide-y divide-border/50">
               {profileData.recentActions.map((action, i) => (
@@ -318,12 +318,8 @@ const Profile = () => {
               ))}
             </div>
           </ResponsiveCard>
-        ) : (
-          <ResponsiveCard className="p-8 text-center text-muted-foreground bg-muted/30 border-dashed">
-            <p className="text-sm">No recent interactions. Go find a dog! 🐶</p>
-          </ResponsiveCard>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 7. President Panel */}
       {isAdmin && (
