@@ -24,53 +24,54 @@ export default {
       },
       colors: {
         border: "hsl(var(--border) / <alpha-value>)",
-        background: "hsl(var(--bg) / <alpha-value>)",
-        foreground: "hsl(var(--text) / <alpha-value>)", // Mapping 'foreground' to 'text' for compatibility
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
 
         // Semantic palette
-        surface: "hsl(var(--surface) / <alpha-value>)",
-        elevated: "hsl(var(--elevated) / <alpha-value>)",
+        // surface: "hsl(var(--surface) / <alpha-value>)", // Deprecated, mapped to card or background
+        // elevated: "hsl(var(--elevated) / <alpha-value>)", // Deprecated
 
-        // Re-mapping Primary to Text
         primary: {
-          DEFAULT: "hsl(var(--text) / <alpha-value>)", // PRIMARY TEXT
-          foreground: "hsl(var(--bg) / <alpha-value>)",
+          DEFAULT: "hsl(var(--primary) / <alpha-value>)",
+          foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary) / <alpha-value>)",
+          foreground: "hsl(var(--secondary-foreground) / <alpha-value>)",
         },
         muted: {
-          DEFAULT: "hsl(var(--text-muted) / <alpha-value>)",
-          foreground: "hsl(var(--text) / <alpha-value>)",
-        },
-        // Brand color (orange)
-        brand: {
-          DEFAULT: "hsl(var(--accent))", // Using new --accent variable which is orange
-          foreground: "hsl(var(--bg))", // Text on brand should be dark or light? Usually white.
-          // User said: --accent: 24 95% 53% (Orange).
-          // If I use --accent for brand, I should use that.
-          // Previous brand was var(--primary).
-        },
-
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "hsl(var(--muted) / <alpha-value>)",
+          foreground: "hsl(var(--muted-foreground) / <alpha-value>)", // Added muted-foreground
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "hsl(var(--accent) / <alpha-value>)",
+          foreground: "hsl(var(--accent-foreground) / <alpha-value>)",
         },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
+          foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
+        },
+
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "hsl(var(--popover) / <alpha-value>)",
+          foreground: "hsl(var(--popover-foreground) / <alpha-value>)",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "hsl(var(--card) / <alpha-value>)",
+          foreground: "hsl(var(--card-foreground) / <alpha-value>)",
         },
+
+        input: "hsl(var(--input) / <alpha-value>)",
+        ring: "hsl(var(--ring) / <alpha-value>)",
+
+        // Brand color (orange)
+        brand: {
+          DEFAULT: "hsl(var(--accent) / <alpha-value>)",
+          foreground: "hsl(var(--primary-foreground) / <alpha-value>)", // Text on brand
+        },
+
         success: {
-          DEFAULT: "hsl(var(--success))",
+          DEFAULT: "hsl(var(--success))", // Assuming strict color or if var exists
           foreground: "hsl(var(--success-foreground))",
         },
         coral: {
@@ -78,15 +79,17 @@ export default {
           foreground: "hsl(var(--coral-foreground))",
         },
         cream: "hsl(var(--cream))",
+
+        // Sidebar specific (optional, mapping to card/accent/primary for now if vars missing)
         sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
+          DEFAULT: "hsl(var(--card) / <alpha-value>)",
+          foreground: "hsl(var(--foreground) / <alpha-value>)",
+          primary: "hsl(var(--primary) / <alpha-value>)",
+          "primary-foreground": "hsl(var(--primary-foreground) / <alpha-value>)",
+          accent: "hsl(var(--accent) / <alpha-value>)",
+          "accent-foreground": "hsl(var(--accent-foreground) / <alpha-value>)",
+          border: "hsl(var(--border) / <alpha-value>)",
+          ring: "hsl(var(--ring) / <alpha-value>)",
         },
       },
       borderRadius: {

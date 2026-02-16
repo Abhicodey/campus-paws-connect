@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { ArrowLeft, Upload, Camera, MapPin, Info, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import BottomNav from "@/components/BottomNav";
+import Page from "@/components/layout/Page";
 import { UsernameStatusBanner } from "@/components/UsernameStatusBanner";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";

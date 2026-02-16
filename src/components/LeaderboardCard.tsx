@@ -1,5 +1,6 @@
 import { Trophy } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 
 interface LeaderboardCardProps {
   rank: number;
@@ -19,19 +20,24 @@ const LeaderboardCard = ({ rank, name, points, avatarUrl, avatarUpdatedAt }: Lea
 
   return (
     <div
-      className={`card-warm p-4 flex items-center gap-4 transition-all duration-200 ${isTop3 ? "border-2 shadow-warm" : ""
-        } ${isTop3 ? rankColors[rank as 1 | 2 | 3]?.split(" ")[2] : ""}`}
+      className={cn(
+        "bg-card border border-border rounded-2xl p-4 flex items-center gap-4 transition-all duration-200",
+        isTop3 ? "border-primary/30 shadow-md bg-gradient-to-r from-card to-primary/5" : "shadow-sm hover:shadow-md"
+      )}
     >
       <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${isTop3
-          ? rankColors[rank as 1 | 2 | 3]
-          : "bg-muted text-muted-foreground"
-          }`}
+        className={cn(
+          "w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shrink-0",
+          rank === 1 && "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400",
+          rank === 2 && "bg-slate-100 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400",
+          rank === 3 && "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400",
+          !isTop3 && "bg-muted text-muted-foreground"
+        )}
       >
         {rank === 1 ? <Trophy className="w-5 h-5" /> : rank}
       </div>
 
-      <div className="w-10 h-10 rounded-full bg-secondary/30 overflow-hidden flex items-center justify-center">
+      <div className="w-10 h-10 rounded-full bg-secondary/30 overflow-hidden flex items-center justify-center shrink-0 border border-border/50">
         {avatarUrl ? (
           <img
             key={avatarUpdatedAt || 'avatar'}
@@ -49,12 +55,12 @@ const LeaderboardCard = ({ rank, name, points, avatarUrl, avatarUpdatedAt }: Lea
         )}
       </div>
 
-      <div className="flex-1">
-        <h3 className="font-semibold text-foreground">{name}</h3>
-        <p className="text-sm text-muted-foreground">Kindness Champion</p>
+      <div className="flex-1 min-w-0">
+        <h3 className="font-semibold text-foreground truncate">{name}</h3>
+        <p className="text-sm text-muted-foreground truncate">Kindness Champion</p>
       </div>
 
-      <div className="text-right">
+      <div className="text-right shrink-0">
         <p className="font-bold text-primary text-lg">{points}</p>
         <p className="text-xs text-muted-foreground">points</p>
       </div>

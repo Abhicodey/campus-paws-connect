@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { ArrowLeft, MapPin, Clock, Bone, Heart, Navigation, Edit, AlertTriangle, Loader2, Flag } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Bone, Heart, Navigation, Edit, AlertTriangle, Loader2, Flag, Info } from "lucide-react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import StatusTag from "@/components/StatusTag";
 import ActionButton from "@/components/ActionButton";
-import BottomNav from "@/components/BottomNav";
+import Page from "@/components/layout/Page";
+import ResponsiveCard from "@/components/ui/ResponsiveCard";
 import { UsernameStatusBanner } from "@/components/UsernameStatusBanner";
 import { toast } from "@/hooks/use-toast";
 import { useDogProfile } from "@/hooks/useDogProfile";
@@ -138,42 +139,42 @@ const DogProfile = () => {
     : 'Unknown';
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header with image */}
-      <div className="relative">
+    <div className="relative">
+      {/* Header with image - Full Width */}
+      <div className="relative h-64 md:h-80 w-full">
         <img
           src={dog.profile_image || "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800"}
           alt={dog.name}
-          className="w-full h-64 object-cover"
+          className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
 
         <Link
           to="/dogs"
-          className="absolute top-4 left-4 p-2 rounded-full bg-card/80 backdrop-blur-sm 
-            text-foreground hover:bg-card transition-all"
+          className="absolute top-4 left-4 p-2 rounded-full bg-background/50 backdrop-blur-md 
+            text-foreground hover:bg-background/80 transition-all border border-border/10"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
       </div>
 
-      {/* Content */}
-      <div className="px-6 -mt-8 relative">
-        <div className="card-elevated p-5">
+      {/* Content wrapped in Page */}
+      <Page className="-mt-12 relative z-10 pt-0">
+        <ResponsiveCard className="p-5 md:p-8 shadow-xl border-border/50 backdrop-blur-sm bg-card/95">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">{dog.name}</h1>
-              <div className="flex items-center gap-1 text-muted-foreground mt-1">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm">
-                  Usually seen near: {dog.soft_locations?.[0] || "Campus"}
+              <h1 className="text-3xl font-bold text-foreground">{dog.name}</h1>
+              <div className="flex items-center gap-2 text-muted-foreground mt-2">
+                <MapPin className="w-4 h-4 shrink-0" />
+                <span className="text-sm font-medium">
+                  {dog.soft_locations?.[0] || "Campus"}
                 </span>
               </div>
             </div>
           </div>
 
           {/* Status Tags */}
-          <div className="flex flex-wrap gap-2 mt-4">
+          <div className="flex flex-wrap gap-2 mt-5">
             <StatusTag type={getStatusType()} label={behaviourDisplay.text} />
             <StatusTag
               type={feedingStatus === 'recently_fed' ? 'friendly' : feedingStatus === 'due_soon' ? 'shy' : 'care'}
@@ -183,16 +184,16 @@ const DogProfile = () => {
 
           {/* Stats from View */}
           {stats && (
-            <div className="grid grid-cols-2 gap-4 mt-4 py-4 border-t border-border">
+            <div className="grid grid-cols-2 gap-4 mt-6 py-6 border-t border-border/50">
               <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground uppercase tracking-wide">Avg Mood</span>
-                <span className="text-lg font-semibold flex items-center gap-1">
-                  {stats.avg_mood ? stats.avg_mood.toFixed(1) : '—'} <span className="text-sm">/ 5</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Avg Mood</span>
+                <span className="text-xl font-bold flex items-center gap-1 mt-1">
+                  {stats.avg_mood ? stats.avg_mood.toFixed(1) : '—'} <span className="text-sm font-normal text-muted-foreground">/ 5</span>
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground uppercase tracking-wide">Interactions</span>
-                <span className="text-lg font-semibold">
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Interactions</span>
+                <span className="text-xl font-bold mt-1">
                   {stats.total_interactions || 0}
                 </span>
               </div>
@@ -200,13 +201,13 @@ const DogProfile = () => {
           )}
 
           {/* Last Actions */}
-          <div className="mt-2 pt-2 border-t border-border">
+          <div className="mt-2 pt-2 border-t border-border/50">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="w-4 h-4" />
-              <span>Last fed: {lastFedText}</span>
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="font-medium">Last fed: {lastFedText}</span>
             </div>
             {dog.vaccination_status !== 'unknown' && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                 <span className="w-4 h-4 text-center">💉</span>
                 <span>Vaccination: {dog.vaccination_status === 'vaccinated' ? 'Vaccinated' : 'Partial'}</span>
               </div>
@@ -214,16 +215,21 @@ const DogProfile = () => {
           </div>
 
           {/* Disclaimer */}
-          <p className="text-xs text-muted-foreground mt-4 italic">
-            Based on recent community interactions and observations
-          </p>
-        </div>
+          <div className="bg-muted/30 rounded-lg p-3 mt-6">
+            <p className="text-xs text-muted-foreground italic flex gap-2">
+              <Info className="w-3 h-3 shrink-0 mt-0.5" />
+              Based on recent community interactions and observations
+            </p>
+          </div>
+        </ResponsiveCard>
 
         {/* Username Status Banner */}
-        <UsernameStatusBanner className="mt-5" />
+        <div className="mt-6">
+          <UsernameStatusBanner />
+        </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3 mt-5">
+        <div className="grid grid-cols-2 gap-3 mt-6">
           <ActionButton
             icon={<Bone className="w-6 h-6" />}
             label="Feed"
@@ -260,8 +266,8 @@ const DogProfile = () => {
               }}
               disabled={reportMutation.isPending}
               className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl 
-                bg-destructive/10 text-destructive border border-destructive/20
-                hover:bg-destructive/20 transition-all disabled:opacity-50"
+                bg-destructive/5 text-destructive border border-destructive/20
+                hover:bg-destructive/10 transition-all disabled:opacity-50 active:scale-95"
             >
               <Flag className="w-6 h-6" />
               <span className="text-sm font-medium">
@@ -272,11 +278,10 @@ const DogProfile = () => {
         </div>
 
         {/* Note */}
-        <p className="text-center text-xs text-muted-foreground mt-6 px-4">
+        <p className="text-center text-xs text-muted-foreground mt-8 mb-4">
           Actions are available once every 12 hours to ensure fair caring opportunities for everyone 💚
         </p>
-      </div>
-
+      </Page>
     </div>
   );
 };

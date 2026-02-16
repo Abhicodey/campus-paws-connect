@@ -3,6 +3,7 @@ import { X, Flag, Trash2, Loader2 } from "lucide-react";
 import { useReportContent } from "@/hooks/useReport";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRejectImage } from "@/hooks/useAdmin";
+import { cn } from "@/lib/utils";
 
 interface GalleryImageProps {
   src: string;
@@ -10,9 +11,10 @@ interface GalleryImageProps {
   imageId?: string;
   uploaderId?: string;
   username?: string | null;
+  className?: string; // Added className prop
 }
 
-const GalleryImage = ({ src, alt, imageId, uploaderId, username }: GalleryImageProps) => {
+const GalleryImage = ({ src, alt, imageId, uploaderId, username, className }: GalleryImageProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { authUser, profile } = useAuth();
   const reportMutation = useReportContent();
@@ -42,32 +44,34 @@ const GalleryImage = ({ src, alt, imageId, uploaderId, username }: GalleryImageP
 
   return (
     <>
-      <div className="w-full">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="w-full rounded-2xl overflow-hidden bg-muted transition-all duration-200 
-            hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
-        >
-          <img
-            src={src}
-            alt={alt}
-            className="w-full h-auto object-cover"
-            loading="lazy"
-          />
-        </button>
+      <div
+        className={cn(
+          "relative w-full h-full group overflow-hidden bg-muted cursor-pointer",
+          className
+        )}
+        onClick={() => setIsOpen(true)}
+      >
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          loading="lazy"
+        />
 
-        {/* Username and Report on Card */}
-        <div className="flex items-center justify-between mt-2 px-1">
-          <span className="text-sm text-muted-foreground">
+        {/* Overlay Layout */}
+        <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-100 transition-opacity flex items-end justify-between">
+          <span className="text-sm font-medium text-white truncate text-shadow-sm">
             @{username || 'anonymous'}
           </span>
+
           {authUser && imageId && uploaderId && (
             <button
               onClick={handleReport}
               disabled={reportMutation.isPending}
-              className="text-xs text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+              className="text-white/80 hover:text-red-400 p-1 rounded-full hover:bg-white/10 transition-colors"
+              title="Report"
             >
-              {reportMutation.isPending ? "Reporting..." : "Report"}
+              <Flag className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -75,35 +79,35 @@ const GalleryImage = ({ src, alt, imageId, uploaderId, username }: GalleryImageP
 
       {isOpen && (
         <div
-          className="fixed inset-0 bg-foreground/80 z-50 flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 bg-background/90 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setIsOpen(false)}
         >
           <button
             onClick={() => setIsOpen(false)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-card text-foreground hover:bg-muted"
+            className="absolute top-4 right-4 p-2 rounded-full bg-card text-foreground hover:bg-muted shadow-sm z-10"
           >
             <X className="w-6 h-6" />
           </button>
 
           {/* Username display in modal */}
-          <div className="absolute top-4 left-4 px-4 py-2 rounded-xl bg-card/90 backdrop-blur-sm">
+          <div className="absolute top-4 left-4 px-4 py-2 rounded-full bg-card/90 backdrop-blur-sm shadow-sm z-10 border border-border/50">
             <span className="text-sm text-foreground font-medium">
               @{username || 'anonymous'}
             </span>
           </div>
 
           {/* Report and Delete buttons */}
-          <div className="absolute bottom-6 right-6 flex gap-2">
+          <div className="absolute bottom-6 right-6 flex gap-2 z-10">
             {(profile?.is_super_admin || profile?.role === 'president') && imageId && (
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl 
                     bg-destructive text-destructive-foreground text-sm font-medium
-                    hover:opacity-90 transition-all disabled:opacity-50"
+                    hover:opacity-90 transition-all disabled:opacity-50 shadow-sm"
               >
                 {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                Delete Permanently
+                Delete
               </button>
             )}
 
@@ -113,7 +117,7 @@ const GalleryImage = ({ src, alt, imageId, uploaderId, username }: GalleryImageP
                 disabled={reportMutation.isPending}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl 
                     bg-secondary/90 text-secondary-foreground text-sm font-medium
-                    hover:bg-secondary transition-all disabled:opacity-50 backdrop-blur-sm"
+                    hover:bg-secondary transition-all disabled:opacity-50 backdrop-blur-sm shadow-sm"
               >
                 <Flag className="w-4 h-4" />
                 {reportMutation.isPending ? "Reporting..." : "Report"}
@@ -124,7 +128,7 @@ const GalleryImage = ({ src, alt, imageId, uploaderId, username }: GalleryImageP
           <img
             src={src}
             alt={alt}
-            className="max-w-full max-h-[85vh] rounded-2xl object-contain animate-scale-in"
+            className="max-w-full max-h-[85vh] w-auto h-auto rounded-xl object-contain shadow-2xl animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           />
         </div>

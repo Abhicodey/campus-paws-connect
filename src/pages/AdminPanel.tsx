@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ArrowLeft, Check, X, Dog, Image, Flag, User, Loader2, AlertTriangle, Sparkles, RefreshCw, Megaphone } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import BottomNav from "@/components/BottomNav";
+import Page from "@/components/layout/Page";
+import ResponsiveCard from "@/components/ui/ResponsiveCard";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -246,7 +247,7 @@ const AdminPanel = () => {
   const totalPending = tabs.reduce((sum, tab) => sum + tab.count, 0);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="w-full">
       {/* Header */}
       <header className="bg-gradient-to-br from-primary to-primary/80 pt-6 pb-4 px-6">
         <div className="flex items-center justify-between">
@@ -282,412 +283,414 @@ const AdminPanel = () => {
         </div>
       </header>
 
-      {/* DEV ONLY: Debug Section (Read-Only) */}
-      {isDev && (
-        <div className="mx-6 mt-4 p-4 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-xl border border-yellow-200 dark:border-yellow-800">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-yellow-800 dark:text-yellow-200 text-sm flex items-center gap-2">
-              🔧 DEV MODE
-            </p>
-            <span className="text-xs text-yellow-600 dark:text-yellow-400 font-mono">
-              {new Date().toLocaleTimeString()}
-            </span>
-          </div>
+      <Page>
+        {/* DEV ONLY: Debug Section (Read-Only) */}
+        {isDev && (
+          <div className="p-4 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-xl border border-yellow-200 dark:border-yellow-800 animate-in slide-in-from-top-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-yellow-800 dark:text-yellow-200 text-sm flex items-center gap-2">
+                🔧 DEV MODE
+              </p>
+              <span className="text-xs text-yellow-600 dark:text-yellow-400 font-mono">
+                {new Date().toLocaleTimeString()}
+              </span>
+            </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-            <p>Role: <span className="font-bold">{profile?.role}</span></p>
-            <p>isPresident: <span className="font-bold">{isPresident ? '✅' : '❌'}</span></p>
-            <p>Users: {pendingUsernames?.length ?? '...'}</p>
-            <p>Dogs: {pendingDogs?.length ?? '...'}</p>
-            <p>Images: {pendingImages?.length ?? '...'}</p>
-            <p>Reports: {userReports?.length ?? '...'}</p>
-          </div>
+            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+              <p>Role: <span className="font-bold">{profile?.role}</span></p>
+              <p>isPresident: <span className="font-bold">{isPresident ? '✅' : '❌'}</span></p>
+              <p>Users: {pendingUsernames?.length ?? '...'}</p>
+              <p>Dogs: {pendingDogs?.length ?? '...'}</p>
+              <p>Images: {pendingImages?.length ?? '...'}</p>
+              <p>Reports: {userReports?.length ?? '...'}</p>
+            </div>
 
-          {usernamesError && (
-            <p className="text-red-600 text-xs mt-2">❌ Error: {(usernamesError as Error).message}</p>
-          )}
+            {usernamesError && (
+              <p className="text-red-600 text-xs mt-2">❌ Error: {(usernamesError as Error).message}</p>
+            )}
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div>
+          <ResponsiveCard className="p-4">
+            <div className="grid grid-cols-4 gap-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`text-center p-3 rounded-xl transition-all ${activeTab === tab.key
+                    ? 'bg-primary/10 ring-2 ring-primary/20'
+                    : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <p className={`text-2xl font-bold ${tab.count > 0 ? 'text-coral' : 'text-muted-foreground'}`}>
+                    {tab.count}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{tab.label}</p>
+                </button>
+              ))}
+            </div>
+          </ResponsiveCard>
         </div>
-      )}
 
-      {/* Stats Cards */}
-      <div className="px-6 mt-4">
-        <div className="card-elevated p-4">
-          <div className="grid grid-cols-4 gap-2">
+        {/* Tabs */}
+        <div>
+          <div className="flex gap-1 bg-muted p-1 rounded-xl overflow-x-auto shadow-sm">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`text-center p-3 rounded-xl transition-all ${activeTab === tab.key
-                  ? 'bg-primary/10 ring-2 ring-primary/20'
-                  : 'hover:bg-muted/50'
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg font-medium 
+                transition-all whitespace-nowrap text-sm ${activeTab === tab.key
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground"
                   }`}
               >
-                <p className={`text-2xl font-bold ${tab.count > 0 ? 'text-coral' : 'text-muted-foreground'}`}>
-                  {tab.count}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">{tab.label}</p>
+                {tab.icon}
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-coral text-white animate-pulse">
+                    {tab.count}
+                  </span>
+                )}
               </button>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="px-6 mt-6">
-        <div className="flex gap-1 bg-muted p-1 rounded-xl overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg font-medium 
-                transition-all whitespace-nowrap text-sm ${activeTab === tab.key
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground"
-                }`}
-            >
-              {tab.icon}
-              {tab.label}
-              {tab.count > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-coral text-white animate-pulse">
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="px-6 mt-6 space-y-3">
-        {/* Manage Users Tab (Superadmin) */}
-        {activeTab === "users" && (
-          usersLoading ? (
-            <LoadingState message="Loading all users..." />
-          ) : usersError ? (
-            <ErrorState message="Unable to load users" detail={(usersError as Error).message} />
-          ) : allUsers && allUsers.length > 0 ? (
-            <div className="space-y-3">
-              {allUsers.map((user, index) => (
-                <div key={user.id} className="card-warm p-4 flex items-center justify-between animate-in slide-in-from-bottom-2" style={{ animationDelay: `${index * 50}ms` }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                      {user.full_name?.[0] || 'U'}
+        {/* Content */}
+        <div className="space-y-3">
+          {/* Manage Users Tab (Superadmin) */}
+          {activeTab === "users" && (
+            usersLoading ? (
+              <LoadingState message="Loading all users..." />
+            ) : usersError ? (
+              <ErrorState message="Unable to load users" detail={(usersError as Error).message} />
+            ) : allUsers && allUsers.length > 0 ? (
+              <div className="space-y-3">
+                {allUsers.map((user, index) => (
+                  <div key={user.id} className="card-warm p-4 flex items-center justify-between animate-in slide-in-from-bottom-2" style={{ animationDelay: `${index * 50}ms` }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                        {user.full_name?.[0] || 'U'}
+                      </div>
+                      <div>
+                        <p className="font-semibold">{user.full_name || 'Unknown'}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-2">
+                          @{user.username || 'no_username'} • <span className="uppercase">{user.role}</span>
+                          {user.is_super_admin && <span className="text-amber-500 font-bold">SUPER ADMIN</span>}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold">{user.full_name || 'Unknown'}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-2">
-                        @{user.username || 'no_username'} • <span className="uppercase">{user.role}</span>
-                        {user.is_super_admin && <span className="text-amber-500 font-bold">SUPER ADMIN</span>}
-                      </p>
-                    </div>
-                  </div>
 
-                  {!user.is_super_admin && (
-                    <div className="flex gap-2">
-                      {user.role !== 'president' && (
-                        <button
-                          onClick={() => handleUpdateRole(user.id, 'president')}
-                          disabled={updateUserRole.isPending}
-                          className="text-xs bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-200 transition-colors"
-                        >
-                          Make President
-                        </button>
-                      )}
-                      {user.role === 'president' && (
-                        <button
-                          onClick={() => handleUpdateRole(user.id, 'student')}
-                          disabled={updateUserRole.isPending}
-                          className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg hover:bg-orange-200 transition-colors"
-                        >
-                          Demote
-                        </button>
-                      )}
-                      {profile?.is_super_admin && user.id !== profile.id && (
-                        user.is_suspended ? (
+                    {!user.is_super_admin && (
+                      <div className="flex gap-2">
+                        {user.role !== 'president' && (
                           <button
-                            onClick={() => handleUnsuspendUser(user.id)}
-                            className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 transition-colors"
+                            onClick={() => handleUpdateRole(user.id, 'president')}
+                            disabled={updateUserRole.isPending}
+                            className="text-xs bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-200 transition-colors"
                           >
-                            Unsuspend
+                            Make President
                           </button>
-                        ) : (
+                        )}
+                        {user.role === 'president' && (
                           <button
-                            onClick={() => handleSuspendUser(user.id)}
+                            onClick={() => handleUpdateRole(user.id, 'student')}
+                            disabled={updateUserRole.isPending}
                             className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg hover:bg-orange-200 transition-colors"
                           >
-                            Suspend
+                            Demote
                           </button>
-                        )
-                      )}
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        disabled={deleteUser.isPending}
-                        className="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-200 transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState icon={<User className="w-16 h-16" />} title="No users found" message="This is unexpected." />
-          )
-        )}
-        {/* Verified Tab (Dogs with QR Codes - Flow 1) */}
-        {activeTab === "verified" && (
-          dogsLoading ? (
-            <LoadingState message="Loading verified dogs..." />
-          ) : dogsError ? (
-            <ErrorState
-              message="Unable to load verified dogs"
-              detail={(dogsError as Error).message}
-            />
-          ) : pendingDogs && pendingDogs.filter((d: any) => d.qr_code).length > 0 ? (
-            <div className="space-y-3">
-              {pendingDogs.filter((d: any) => d.qr_code).map((dog, index) => (
-                <div
-                  key={dog.id}
-                  className="card-warm p-4 animate-in slide-in-from-bottom-2"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="flex gap-3">
-                    <img
-                      src={dog.profile_image || "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400"}
-                      alt={dog.official_name || dog.name}
-                      className="w-20 h-20 rounded-xl object-cover"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground text-lg flex items-center gap-2">
-                        {dog.official_name || dog.name}
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Verified</span>
-                      </h3>
-                      <p className="text-sm text-muted-foreground">📍 {dog.soft_locations?.[0] || 'Unknown area'}</p>
-                      <p className="text-xs text-muted-foreground mt-1 font-mono">QR: {dog.qr_code}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon={<Dog className="w-16 h-16" />}
-              title="No verified dogs yet"
-              message="Dogs with QR codes will appear here."
-            />
-          )
-        )}
-
-        {/* Naming Tab (Dogs without Official Names - Flow 3) */}
-        {activeTab === "naming" && (
-          dogsLoading ? (
-            <LoadingState message="Loading dogs needing names..." />
-          ) : dogsError ? (
-            <ErrorState
-              message="Unable to load dogs"
-              detail={(dogsError as Error).message}
-            />
-          ) : pendingDogs && pendingDogs.filter((d: any) => !d.official_name).length > 0 ? (
-            <div className="space-y-3">
-              {pendingDogs.filter((d: any) => !d.official_name).map((dog, index) => (
-                <div
-                  key={dog.id}
-                  className="card-warm p-4 animate-in slide-in-from-bottom-2"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="flex gap-3">
-                    <img
-                      src={dog.profile_image || "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400"}
-                      alt={dog.temporary_name || dog.name}
-                      className="w-20 h-20 rounded-xl object-cover"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground text-lg">
-                        {dog.temporary_name || dog.name || "Unnamed"}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">📍 {dog.soft_locations?.[0] || 'Unknown area'}</p>
-                      <p className="text-xs text-amber-600 mt-1">Needs official name</p>
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    {editingDogId === dog.id ? (
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          className="flex-1 px-3 py-2 rounded-xl bg-background border border-border text-sm"
-                          placeholder="Official Name"
-                          autoFocus
-                        />
+                        )}
+                        {profile?.is_super_admin && user.id !== profile.id && (
+                          user.is_suspended ? (
+                            <button
+                              onClick={() => handleUnsuspendUser(user.id)}
+                              className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 transition-colors"
+                            >
+                              Unsuspend
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleSuspendUser(user.id)}
+                              className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg hover:bg-orange-200 transition-colors"
+                            >
+                              Suspend
+                            </button>
+                          )
+                        )}
                         <button
-                          onClick={() => {
-                            if (!editName.trim()) return;
-                            approveDog.mutate({ dogId: dog.id, name: editName.trim() }, {
-                              onSuccess: () => {
-                                toast({ title: "Dog named! 🐾", description: `Welcome ${editName}!` });
-                                setEditingDogId(null);
-                              },
-                              onError: (err) => toast({ title: "Failed", description: err.message, variant: "destructive" })
-                            });
-                          }}
-                          disabled={approveDog.isPending}
-                          className="px-4 bg-primary text-primary-foreground rounded-xl hover:opacity-90"
+                          onClick={() => handleDeleteUser(user.id)}
+                          disabled={deleteUser.isPending}
+                          className="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-200 transition-colors"
                         >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setEditingDogId(null)}
-                          className="px-3 bg-muted text-muted-foreground rounded-xl"
-                        >
-                          <X className="w-4 h-4" />
+                          Delete
                         </button>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setEditingDogId(dog.id);
-                          setEditName(dog.temporary_name || dog.name || '');
-                        }}
-                        className="w-full py-2 bg-amber-100 text-amber-700 rounded-xl font-medium hover:bg-amber-200 transition-colors"
-                      >
-                        <Sparkles className="w-4 h-4 inline mr-2" />
-                        Give Official Name
-                      </button>
                     )}
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon={<Sparkles className="w-16 h-16" />}
-              title="All dogs have names!"
-              message="Dogs needing official names will appear here."
-            />
-          )
-        )}
-
-        {/* Pending Tab (Unverified Dogs - Flow 2 Reports) */}
-        {activeTab === "pending" && (
-          dogsLoading ? (
-            <LoadingState message="Loading pending dogs..." />
-          ) : dogsError ? (
-            <ErrorState
-              message="Unable to load pending dogs"
-              detail={(dogsError as Error).message}
-            />
-          ) : pendingDogs && pendingDogs.filter((d: any) => !d.verified).length > 0 ? (
-            <div className="space-y-3">
-              {pendingDogs.filter((d: any) => !d.verified).map((dog, index) => (
-                <div
-                  key={dog.id}
-                  className="card-warm p-4 animate-in slide-in-from-bottom-2"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="flex gap-3">
-                    <img
-                      src={dog.profile_image || "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400"}
-                      alt={dog.name}
-                      className="w-20 h-20 rounded-xl object-cover"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground text-lg">{dog.name}</h3>
-                      <p className="text-sm text-muted-foreground">📍 {dog.soft_locations?.[0] || 'Unknown area'}</p>
-                      <p className="text-xs text-muted-foreground mt-1">By: {dog.creator?.username || 'Unknown'}</p>
+                ))}
+              </div>
+            ) : (
+              <EmptyState icon={<User className="w-16 h-16" />} title="No users found" message="This is unexpected." />
+            )
+          )}
+          {/* Verified Tab (Dogs with QR Codes - Flow 1) */}
+          {activeTab === "verified" && (
+            dogsLoading ? (
+              <LoadingState message="Loading verified dogs..." />
+            ) : dogsError ? (
+              <ErrorState
+                message="Unable to load verified dogs"
+                detail={(dogsError as Error).message}
+              />
+            ) : pendingDogs && pendingDogs.filter((d: any) => d.qr_code).length > 0 ? (
+              <div className="space-y-3">
+                {pendingDogs.filter((d: any) => d.qr_code).map((dog, index) => (
+                  <div
+                    key={dog.id}
+                    className="card-warm p-4 animate-in slide-in-from-bottom-2"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="flex gap-3">
+                      <img
+                        src={dog.profile_image || "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400"}
+                        alt={dog.official_name || dog.name}
+                        className="w-20 h-20 rounded-xl object-cover"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground text-lg flex items-center gap-2">
+                          {dog.official_name || dog.name}
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Verified</span>
+                        </h3>
+                        <p className="text-sm text-muted-foreground">📍 {dog.soft_locations?.[0] || 'Unknown area'}</p>
+                        <p className="text-xs text-muted-foreground mt-1 font-mono">QR: {dog.qr_code}</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex gap-2 mt-4">
-                    {editingDogId === dog.id ? (
-                      <div className="flex-1 flex flex-col gap-2">
-                        <input
-                          type="text"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-background border border-border text-sm"
-                          placeholder="Official Name (e.g., Buddy)"
-                          autoFocus
-                        />
-                        <input
-                          type="text"
-                          value={qrCode}
-                          onChange={(e) => setQrCode(e.target.value.toUpperCase())}
-                          className="w-full px-3 py-2 rounded-xl bg-background border border-border text-sm font-mono"
-                          placeholder="Scan/Enter QR Code (e.g., CP-1029)"
-                        />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={<Dog className="w-16 h-16" />}
+                title="No verified dogs yet"
+                message="Dogs with QR codes will appear here."
+              />
+            )
+          )}
+
+          {/* Naming Tab (Dogs without Official Names - Flow 3) */}
+          {activeTab === "naming" && (
+            dogsLoading ? (
+              <LoadingState message="Loading dogs needing names..." />
+            ) : dogsError ? (
+              <ErrorState
+                message="Unable to load dogs"
+                detail={(dogsError as Error).message}
+              />
+            ) : pendingDogs && pendingDogs.filter((d: any) => !d.official_name).length > 0 ? (
+              <div className="space-y-3">
+                {pendingDogs.filter((d: any) => !d.official_name).map((dog, index) => (
+                  <div
+                    key={dog.id}
+                    className="card-warm p-4 animate-in slide-in-from-bottom-2"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="flex gap-3">
+                      <img
+                        src={dog.profile_image || "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400"}
+                        alt={dog.temporary_name || dog.name}
+                        className="w-20 h-20 rounded-xl object-cover"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground text-lg">
+                          {dog.temporary_name || dog.name || "Unnamed"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">📍 {dog.soft_locations?.[0] || 'Unknown area'}</p>
+                        <p className="text-xs text-amber-600 mt-1">Needs official name</p>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      {editingDogId === dog.id ? (
                         <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="flex-1 px-3 py-2 rounded-xl bg-background border border-border text-sm"
+                            placeholder="Official Name"
+                            autoFocus
+                          />
                           <button
                             onClick={() => {
-                              if (!editName.trim() || !qrCode.trim()) {
-                                toast({ title: "Missing Info", description: "Please enter both name and QR code", variant: "destructive" });
-                                return;
-                              }
-                              approveDog.mutate({ dogId: dog.id, name: editName.trim(), qrCode: qrCode.trim() }, {
+                              if (!editName.trim()) return;
+                              approveDog.mutate({ dogId: dog.id, name: editName.trim(), qrCode: dog.qr_code || "UNKNOWN" }, {
                                 onSuccess: () => {
-                                  toast({ title: "Dog Verified! 🐾", description: `${editName} registered with collar ${qrCode}` });
+                                  toast({ title: "Dog named! 🐾", description: `Welcome ${editName}!` });
                                   setEditingDogId(null);
-                                  setQrCode("");
-                                  setEditName("");
                                 },
                                 onError: (err) => toast({ title: "Failed", description: err.message, variant: "destructive" })
                               });
                             }}
                             disabled={approveDog.isPending}
-                            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium flex items-center justify-center gap-2"
+                            className="px-4 bg-primary text-primary-foreground rounded-xl hover:opacity-90"
                           >
-                            {approveDog.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Confirm</>}
+                            <Check className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => {
-                              setEditingDogId(null);
-                              setQrCode("");
-                              setEditName("");
-                            }}
+                            onClick={() => setEditingDogId(null)}
                             className="px-3 bg-muted text-muted-foreground rounded-xl"
                           >
                             <X className="w-4 h-4" />
                           </button>
                         </div>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setEditingDogId(dog.id);
-                          setEditName(dog.temporary_name || dog.name);
-                        }}
-                        disabled={approveDog.isPending}
-                        className="flex-1 flex items-center justify-center gap-2 bg-secondary text-secondary-foreground 
-                          py-3 rounded-xl font-medium transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-                      >
-                        <Check className="w-5 h-5" />
-                        Verify & Name
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleRejectDog(dog.id)}
-                      disabled={rejectDog.isPending}
-                      className="flex-1 flex items-center justify-center gap-2 bg-destructive/10 text-destructive 
-                        py-3 rounded-xl font-medium transition-all hover:bg-destructive/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-                    >
-                      <X className="w-5 h-5" />
-                      Reject
-                    </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingDogId(dog.id);
+                            setEditName(dog.temporary_name || dog.name || '');
+                          }}
+                          className="w-full py-2 bg-amber-100 text-amber-700 rounded-xl font-medium hover:bg-amber-200 transition-colors"
+                        >
+                          <Sparkles className="w-4 h-4 inline mr-2" />
+                          Give Official Name
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon={<Dog className="w-16 h-16" />}
-              title="All dogs verified!"
-              message="No pending dog profiles to review."
-              hint={isDev ? "Submit a dog from a student account to test" : undefined}
-            />
-          )
-        )}
-      </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={<Sparkles className="w-16 h-16" />}
+                title="All dogs have names!"
+                message="Dogs needing official names will appear here."
+              />
+            )
+          )}
 
+          {/* Pending Tab (Unverified Dogs - Flow 2 Reports) */}
+          {activeTab === "pending" && (
+            dogsLoading ? (
+              <LoadingState message="Loading pending dogs..." />
+            ) : dogsError ? (
+              <ErrorState
+                message="Unable to load pending dogs"
+                detail={(dogsError as Error).message}
+              />
+            ) : pendingDogs && pendingDogs.filter((d: any) => !d.verified).length > 0 ? (
+              <div className="space-y-3">
+                {pendingDogs.filter((d: any) => !d.verified).map((dog, index) => (
+                  <div
+                    key={dog.id}
+                    className="card-warm p-4 animate-in slide-in-from-bottom-2"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="flex gap-3">
+                      <img
+                        src={dog.profile_image || "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400"}
+                        alt={dog.name}
+                        className="w-20 h-20 rounded-xl object-cover"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground text-lg">{dog.name}</h3>
+                        <p className="text-sm text-muted-foreground">📍 {dog.soft_locations?.[0] || 'Unknown area'}</p>
+                        <p className="text-xs text-muted-foreground mt-1">By: {dog.creator?.username || 'Unknown'}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      {editingDogId === dog.id ? (
+                        <div className="flex-1 flex flex-col gap-2">
+                          <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl bg-background border border-border text-sm"
+                            placeholder="Official Name (e.g., Buddy)"
+                            autoFocus
+                          />
+                          <input
+                            type="text"
+                            value={qrCode}
+                            onChange={(e) => setQrCode(e.target.value.toUpperCase())}
+                            className="w-full px-3 py-2 rounded-xl bg-background border border-border text-sm font-mono"
+                            placeholder="Scan/Enter QR Code (e.g., CP-1029)"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                if (!editName.trim() || !qrCode.trim()) {
+                                  toast({ title: "Missing Info", description: "Please enter both name and QR code", variant: "destructive" });
+                                  return;
+                                }
+                                approveDog.mutate({ dogId: dog.id, name: editName.trim(), qrCode: qrCode.trim() }, {
+                                  onSuccess: () => {
+                                    toast({ title: "Dog Verified! 🐾", description: `${editName} registered with collar ${qrCode}` });
+                                    setEditingDogId(null);
+                                    setQrCode("");
+                                    setEditName("");
+                                  },
+                                  onError: (err) => toast({ title: "Failed", description: err.message, variant: "destructive" })
+                                });
+                              }}
+                              disabled={approveDog.isPending}
+                              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium flex items-center justify-center gap-2"
+                            >
+                              {approveDog.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Confirm</>}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingDogId(null);
+                                setQrCode("");
+                                setEditName("");
+                              }}
+                              className="px-3 bg-muted text-muted-foreground rounded-xl"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingDogId(dog.id);
+                            setEditName(dog.temporary_name || dog.name);
+                          }}
+                          disabled={approveDog.isPending}
+                          className="flex-1 flex items-center justify-center gap-2 bg-secondary text-secondary-foreground 
+                          py-3 rounded-xl font-medium transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                        >
+                          <Check className="w-5 h-5" />
+                          Verify & Name
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleRejectDog(dog.id)}
+                        disabled={rejectDog.isPending}
+                        className="flex-1 flex items-center justify-center gap-2 bg-destructive/10 text-destructive 
+                        py-3 rounded-xl font-medium transition-all hover:bg-destructive/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                      >
+                        <X className="w-5 h-5" />
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={<Dog className="w-16 h-16" />}
+                title="All dogs verified!"
+                message="No pending dog profiles to review."
+                hint={isDev ? "Submit a dog from a student account to test" : undefined}
+              />
+            )
+          )}
+        </div>
+
+      </Page>
     </div>
   );
 };

@@ -4,50 +4,69 @@
 
 @layer base {
   :root {
-    /* HSL values */
-    --bg: 0 0% 100%;
-    --card: 0 0% 100%;
-    --surface: 0 0% 100%;
-    /* Mapping surface to card for consistency */
-    --elevated: 210 40% 96%;
-    /* Slightly darker for elevated in light mode */
-    --border: 214 32% 91%;
+    /* Base Dark Mode Values (Default) */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
 
-    --text: 222 47% 11%;
-    --text-muted: 215 16% 47%;
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 14%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 222 30% 20%;
+    --muted-foreground: 215 20.2% 65.1%;
 
     --accent: 24 95% 53%;
-    /* Orange */
+    /* Persisting Orange Brand */
+    --accent-foreground: 210 40% 98%;
 
-    /* User said "text-foreground" (which is --text). */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 25% 26%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
 
     --radius: 0.5rem;
   }
 
-  .dark {
-    /* HSL values */
-    --bg: 222 47% 8%;
-    --card: 222 47% 12%;
-    --surface: 222 47% 12%;
-    /* Mapping surface to card */
-    --elevated: 217 33% 17%;
-    /* Slightly lighter than card */
-    --border: 217 33% 17%;
-    /* Matches elevated or distinct? User said --border not specified in dark, but I'll use a reasonable one or derive */
-    /* User said --bg, --card, --text, --accent. */
-    /* I'll use --card color for border? Or slightly lighter. 217 33% 17% is good. */
+  .light {
+    /* Light Mode Overrides */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
-    --text: 210 40% 96%;
-    --text-muted: 215 20% 65%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --accent: 24 85% 55%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    color-scheme: dark;
-  }
+    --primary: 222 47% 11%;
+    --primary-foreground: 210 40% 98%;
 
-  body {
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 24 95% 53%;
+    /* Persisting Orange Brand */
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
   }
 }
 
