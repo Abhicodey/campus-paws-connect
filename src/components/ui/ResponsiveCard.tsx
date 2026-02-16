@@ -9,7 +9,7 @@ export default function ResponsiveCard({ children, className, ...props }: Respon
     return (
         <div
             className={cn(
-                "bg-card border border-border rounded-2xl p-4 sm:p-5 md:p-6 lg:p-7 shadow-sm",
+                "card p-4 sm:p-5 md:p-6 lg:p-7",
                 className
             )}
             {...props}

@@ -27,6 +27,9 @@
     --ring: 25 95% 58%;
 
     --radius: 0.5rem;
+
+    --section-gap: 28px;
+    --section-gap-mobile: 18px;
   }
 
   .light {
@@ -75,8 +78,16 @@
     min-height: 100dvh;
   }
 
+  .card {
+    @apply rounded-2xl border border-white/10 bg-card shadow-[0_8px_30px_rgb(0, 0, 0, 0.08)] dark:shadow-[0_8px_30px_rgb(0, 0, 0, 0.25)];
+  }
+
+  .page-safe-bottom {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+
   .card-auto {
-    @apply rounded-2xl border bg-card/60 backdrop-blur hover:bg-card/80 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl;
+    @apply card hover:bg-card/80 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl;
   }
 
   .interactive {
