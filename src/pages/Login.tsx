@@ -88,13 +88,12 @@ const Login = () => {
             {/* Header */}
             <div className="pt-12 px-6 text-center">
                 <div className="flex items-center justify-center gap-2 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-card flex items-center justify-center overflow-hidden border border-border shadow-sm">
-                        <img
-                            src="/logo.png"
-                            alt="CampusPaws Official Logo"
-                            className="w-8 h-8 object-contain"
-                        />
-                    </div>
+                    <img
+                        src="/logo.png"
+                        alt="CampusPaws Official Logo"
+                        className="w-12 h-12 object-contain select-none"
+                        draggable={false}
+                    />
                     <span className="text-2xl font-semibold tracking-tight text-foreground">
                         CampusPaws
                     </span>

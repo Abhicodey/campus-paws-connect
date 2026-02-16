@@ -23,13 +23,12 @@ const Sidebar = () => {
         <div className="flex flex-col h-full bg-surface">
             {/* Logo Area */}
             <div className="p-6 border-b border-border flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-card flex items-center justify-center overflow-hidden border border-border shadow-sm">
-                    <img
-                        src="/logo.png"
-                        alt="CampusPaws"
-                        className="w-7 h-7 object-contain"
-                    />
-                </div>
+                <img
+                    src="/logo.png"
+                    alt="CampusPaws"
+                    className="w-10 h-10 object-contain select-none"
+                    draggable={false}
+                />
                 <span className="font-bold text-lg tracking-tight text-foreground">CampusPaws</span>
             </div>
 
