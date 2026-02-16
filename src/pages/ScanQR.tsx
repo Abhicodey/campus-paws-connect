@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Camera, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import BottomNav from "@/components/BottomNav";
+import Page from "@/components/layout/Page";
 import { UsernameStatusBanner } from "@/components/UsernameStatusBanner";
 import { useDogByQRCode } from "@/hooks/useDogProfile";
 
@@ -36,9 +36,10 @@ const ScanQR = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 flex flex-col">
+  return (
+    <Page className="flex flex-col">
       {/* Header */}
-      <header className="flex items-center gap-4 pt-6 px-6">
+      <header className="flex items-center gap-4 mb-4">
         <Link
           to="/"
           className="p-2 rounded-full bg-muted text-foreground hover:bg-muted/80 transition-all"
@@ -52,10 +53,10 @@ const ScanQR = () => {
       </header>
 
       {/* Username Status Banner */}
-      <UsernameStatusBanner className="mx-6 mt-4" />
+      <UsernameStatusBanner className="mb-4" />
 
       {/* Scanner Area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
+      <div className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="relative w-64 h-64 mb-6">
           {/* Scanner Frame */}
           <div className="absolute inset-0 border-4 border-primary rounded-3xl overflow-hidden">
@@ -191,7 +192,7 @@ const ScanQR = () => {
           50% { top: 85%; }
         }
       `}</style>
-    </div>
+    </Page>
   );
 };
 
