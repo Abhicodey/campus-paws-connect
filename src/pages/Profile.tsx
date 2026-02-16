@@ -64,10 +64,11 @@ const Profile = () => {
 
     const { error } = await supabase
       .from("users")
+      // @ts-ignore
       .update({
         birthdate,
         // Trigger handles birthdate_updated_at
-      })
+      } as any)
       .eq("id", authUser?.id);
 
     if (!error) {

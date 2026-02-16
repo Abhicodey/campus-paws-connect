@@ -3,8 +3,7 @@ import { OFFICIAL } from "@/constants/official";
 
 export default function Footer() {
     return (
-        <footer className="mt-16 border-t bg-muted/40 pb-20 md:pb-8">
-            {/* Added pb-20 to account for BottomNav on mobile */}
+        <footer className="mt-16 border-t bg-muted/40 pb-8">
             <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
 
                 {/* Socials */}

@@ -36,7 +36,6 @@ const ScanQR = () => {
   };
 
   return (
-  return (
     <Page className="flex flex-col">
       {/* Header */}
       <header className="flex items-center gap-4 mb-4">

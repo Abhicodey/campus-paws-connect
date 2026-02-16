@@ -5,7 +5,6 @@ import Page from "@/components/layout/Page";
 
 export default function Guidelines() {
     return (
-    return (
         <div className="flex flex-col w-full h-full">
             <header className="bg-primary py-6 px-6">
                 <div className="flex items-center gap-4 max-w-7xl mx-auto md:px-6">
@@ -37,6 +36,5 @@ export default function Guidelines() {
                 </div>
             </Page>
         </div>
-    );
     );
 }
