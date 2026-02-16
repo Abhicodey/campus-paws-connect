@@ -53,7 +53,7 @@ const Index = () => {
       {/* Hero Activity Feed */}
       <HomeHero
         stats={{
-          dogsFed: stats?.dogsFed ?? 0,
+          dogsFed: stats?.totalFeeds ?? 0,
           photos: stats?.totalPhotos ?? 0,
           members: stats?.totalMembers ?? 0,
           todayPoints: stats?.actionsToday ?? 0

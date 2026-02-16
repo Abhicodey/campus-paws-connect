@@ -103,6 +103,10 @@ export default {
         'warm': 'var(--warm-shadow)',
         'card': 'var(--card-shadow)',
       },
+      boxShadow: {
+        'warm': '0 8px 30px rgb(0, 0, 0, 0.08)',
+        'warm-dark': '0 8px 30px rgb(0, 0, 0, 0.25)',
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
