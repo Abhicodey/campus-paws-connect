@@ -10,9 +10,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
-// TEMP DEBUG (remove later)
-if (typeof window !== "undefined") {
-  // @ts-ignore
-  window.supabase = supabase;
-}
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    flowType: "pkce",
+    detectSessionInUrl: true,   // Allow Supabase to auto-handle PKCE exchange on redirect
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});
+

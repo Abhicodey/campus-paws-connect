@@ -13,7 +13,7 @@ export default function AppLayout() {
 
             {/* Page Content */}
             <div className="flex-1 flex flex-col min-w-0">
-                <main className="flex-1 pb-20 lg:pb-0">
+                <main className="flex-1 page-safe-bottom lg:pb-8">
                     <Outlet />
                     <AppFooter />
                 </main>

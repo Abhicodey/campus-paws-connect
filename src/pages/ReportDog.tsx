@@ -131,7 +131,6 @@ const ReportDog = () => {
 
             // 3. Award points
             try {
-                // @ts-ignore
                 await supabase.rpc('add_points', { user_id: authUser.id, points_to_add: 10 });
             } catch (err) {
                 console.error('Points failed:', err);

@@ -55,6 +55,8 @@ const Gallery = () => {
   };
 
   const handleUpload = async () => {
+    console.log("[GALLERY] handleUpload triggered. authUser:", !!authUser, "canParticipate:", canParticipate, "selectedFile:", !!selectedFile);
+
     if (!authUser) {
       toast({
         title: "Login required",
@@ -75,7 +77,14 @@ const Gallery = () => {
       return;
     }
 
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      toast({
+        title: "No file selected",
+        description: "Please select an image to upload",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const { path, error: uploadError } = await uploadGalleryImage(selectedFile, profile?.role);
 
@@ -145,7 +154,7 @@ const Gallery = () => {
         {/* Upload Button (Header) - Visible on desktop */}
         <div className="hidden md:block">
           <button
-            onClick={() => isPresident ? fileInputRef.current?.click() : setShowUploadNote(true)}
+            onClick={() => fileInputRef.current?.click()}
             disabled={!canParticipate}
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -205,7 +214,7 @@ const Gallery = () => {
       {/* Upload FAB (Mobile) */}
       <div className="fixed bottom-24 right-6 md:hidden">
         <button
-          onClick={() => isPresident ? fileInputRef.current?.click() : setShowUploadNote(true)}
+          onClick={() => fileInputRef.current?.click()}
           disabled={!canParticipate || uploading}
           className="w-14 h-14 bg-primary text-primary-foreground
             rounded-full shadow-warm flex items-center justify-center transition-all

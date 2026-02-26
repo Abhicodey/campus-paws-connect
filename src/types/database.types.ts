@@ -8,7 +8,8 @@ export type ObservationType = 'injury' | 'limping' | 'skin_issue' | 'aggression'
 export type Severity = 'mild' | 'moderate' | 'urgent';
 export type VaccineType = 'rabies' | 'dhpp' | 'unknown';
 export type VaccineSource = 'ngo' | 'vet' | 'observation';
-export type ReportStatus = 'pending' | 'reviewed' | 'action_taken';
+export type ReportStatus = 'pending' | 'reviewed' | 'action_taken' | 'hidden' | 'dismissed';
+export type UsernameStatus = 'approved' | 'pending' | 'rejected';
 
 // ============================================
 // Table Types
@@ -19,54 +20,74 @@ export interface User {
     email: string;
     full_name: string | null;
     avatar_url: string | null;
-    username: string | null;
-    requested_username: string | null;
-    username_verified: boolean;
     role: UserRole;
     points: number;
-    is_hidden: boolean;
-    is_super_admin: boolean; // Added for User Management Module
-    is_active: boolean;
     profile_completed: boolean;
+    is_active: boolean;
     created_at: string;
-    avatar_updated_at: string | null;
-    avatar_status?: 'approved' | 'pending' | 'rejected';
-    username_status?: 'approved' | 'pending' | 'rejected';
-    username_pending?: string | null;
-    avatar_pending?: string | null;
+
+    // Username System
+    username: string | null;
+    username_status: UsernameStatus;
+    username_pending: string | null;
+    username_requested_at?: string | null;
+    username_last_changed?: string | null;
     next_username_change?: string | null;
+    previous_username?: string | null;
+
+    // Avatar System
+    avatar_status?: 'approved' | 'pending' | 'rejected';
+    avatar_pending?: string | null;
+    avatar_requested_at?: string | null;
+    avatar_updated_at?: string | null;
+    previous_avatar_url?: string | null;
+
+    // Safety & Moderation
+    is_hidden: boolean;
+    is_suspended?: boolean;
     suspended_until?: string | null;
     suspended_reason?: string | null;
-    is_suspended?: boolean;
+    is_super_admin: boolean;
+    report_count?: number;
+    report_strikes?: number;
+    is_timed_out?: boolean;
+    timeout_until?: string | null;
+
+    // Personal Info
     birthdate?: string | null;
     birth_month?: number | null;
     birth_day?: number | null;
     birthdate_updated_at?: string | null;
+
+    // Legacy / Other
+    app_role?: string | null;
+    is_main_admin?: boolean;
+    monthly_points?: number;
 }
 
 export interface Dog {
     id: string;
-    name: string; // Deprecated in favor of official_name/temporary_name logic, but kept for types
-    temporary_name: string | null;
+    name: string;
     official_name: string | null;
+    temporary_name: string | null;
     name_locked: boolean;
     qr_code: string | null;
     profile_image: string | null;
     description: string | null;
-    soft_locations: string[];
+    soft_locations: string[]; // Note: Schema usage might differ (array check?)
     vaccination_status: VaccinationStatus;
     sterilized: boolean | null;
     verified: boolean;
     created_by: string | null;
-    reported_by: string | null; // User who reported (Flow 2)
-    registered_by: string | null; // President who registered (Flow 1)
-    latitude: number | null;
-    longitude: number | null;
+    status: 'approved' | 'pending' | 'hidden'; // Inferred from policies
     is_active: boolean;
     is_hidden: boolean;
     created_at: string;
-}
 
+    // Stats (often joined)
+    behaviour_score?: number;
+    last_fed_at?: string;
+}
 
 export interface DogAction {
     id: string;
@@ -100,61 +121,123 @@ export interface VaccinationLog {
     verified: boolean;
     notes: string | null;
     created_at: string;
+    updated_by?: string | null;
+}
+
+// Gallery table - separate from gallery_images
+export interface Gallery {
+    id: string;
+    user_id: string; // FK to users (was uploaded_by, standardized to user_id)
+    dog_id: string | null; // FK to dogs
+    verified: boolean;
+    created_at: string;
 }
 
 export interface GalleryImage {
     id: string;
-    image_url: string;
-    dog_id: string | null;
-    uploaded_by: string;
-    verified: boolean;
-    is_active: boolean;
-    is_hidden: boolean; // Added missing field
+    file_path: string; // Actual column name in DB
+    user_id: string; // FK to users
+    status: 'approved' | 'pending' | 'hidden' | 'rejected';
+    is_hidden: boolean;
+    created_at: string;
+}
+
+export interface DogInteraction {
+    id: string;
+    dog_id: string;
+    user_id: string;
+    mood_rating: number; // 1-5
+    latitude: number | null;
+    longitude: number | null;
+    interaction_type: string | null;
     created_at: string;
 }
 
 export interface UserReport {
     id: string;
-    reported_user: string;
+    reported_user: string; // or null if reporting content
     reported_by: string;
-    target_type: 'user' | 'image' | 'dog'; // Added missing field
-    target_id: string; // Added missing field
+    target_type: 'user' | 'image' | 'dog';
+    target_id: string;
     reason: string;
     status: ReportStatus;
     created_at: string;
+    report_date?: string;
 }
 
-// Module 2: Dog Interactions
-export interface DogInteraction {
+export interface ImageReport {
     id: string;
-    dog_id: string;
-    user_id: string;
-    mood_rating: number | null; // 1-5
-    latitude: number | null;
-    longitude: number | null;
-    interaction_type: 'feeding' | 'petting' | 'location_update';
+    image_id: string;
+    reported_by: string;
+    reason?: string;
     created_at: string;
 }
 
-// Module 2: Computed View
+// ============================================
+// New Tables
+// ============================================
+
+export interface Announcement {
+    id: string;
+    title: string;
+    content: string;
+    created_by: string | null;
+    created_at: string;
+    is_active: boolean;
+    expires_at: string | null;
+}
+
+export interface Badge {
+    id: string;
+    code: string;
+    name: string;
+    description: string | null;
+    icon: string | null;
+}
+
+export interface UserBadge {
+    id: string;
+    user_id: string;
+    badge_id: string;
+    created_at?: string; // Often inferred
+}
+
+export interface AdminLog {
+    id: string;
+    admin_id: string | null;
+    action: string | null;
+    target_table: string | null;
+    target_id: string | null;
+    created_at: string;
+}
+
+export interface UserNotification {
+    id: string;
+    user_id: string;
+    announcement_id: string | null;
+    is_read: boolean;
+    created_at: string;
+    expires_at?: string | null;
+}
+
+export interface Guideline {
+    id: string;
+    title: string;
+    content: string;
+    icon: string;
+    order_index: number;
+    is_active: boolean;
+    created_at: string;
+    created_by?: string | null;
+    updated_at?: string | null;
+}
+
 export interface DogStats {
-    id: string; // dog_id
-    official_name: string;
+    id: string;
+    official_name: string | null;
     avg_mood: number | null;
     avg_lat: number | null;
     avg_lng: number | null;
-    total_interactions: number;
-}
-
-// ============================================
-// View Types
-// ============================================
-
-export interface DogSummary {
-    dog_id: string;
-    name: string;
-    last_fed_at: string | null;
-    behaviour_score: number;
 }
 
 // ============================================
@@ -179,6 +262,11 @@ export interface Database {
                 Insert: Omit<DogAction, 'id' | 'created_at' | 'points_given'>;
                 Update: never;
             };
+            dog_interactions: {
+                Row: DogInteraction;
+                Insert: Omit<DogInteraction, 'id' | 'created_at'>;
+                Update: Partial<Omit<DogInteraction, 'id' | 'created_at'>>;
+            };
             health_logs: {
                 Row: HealthLog;
                 Insert: Omit<HealthLog, 'id' | 'created_at'>;
@@ -190,6 +278,11 @@ export interface Database {
                 Update: Partial<Omit<VaccinationLog, 'id' | 'created_at'>>;
             };
             gallery: {
+                Row: Gallery;
+                Insert: Omit<Gallery, 'id' | 'created_at'>;
+                Update: Partial<Omit<Gallery, 'id' | 'created_at'>>;
+            };
+            gallery_images: {
                 Row: GalleryImage;
                 Insert: Omit<GalleryImage, 'id' | 'created_at'>;
                 Update: Partial<Omit<GalleryImage, 'id' | 'created_at'>>;
@@ -199,10 +292,82 @@ export interface Database {
                 Insert: Omit<UserReport, 'id' | 'created_at'>;
                 Update: Partial<Omit<UserReport, 'id' | 'created_at'>>;
             };
+            image_reports: {
+                Row: ImageReport;
+                Insert: Omit<ImageReport, 'id' | 'created_at'>;
+                Update: never;
+            };
+            announcements: {
+                Row: Announcement;
+                Insert: Omit<Announcement, 'id' | 'created_at'>;
+                Update: Partial<Omit<Announcement, 'id' | 'created_at'>>;
+            };
+            badges: {
+                Row: Badge;
+                Insert: Omit<Badge, 'id'>;
+                Update: Partial<Omit<Badge, 'id'>>;
+            };
+            user_badges: {
+                Row: UserBadge;
+                Insert: Omit<UserBadge, 'id'>;
+                Update: never;
+            };
+            admin_logs: {
+                Row: AdminLog;
+                Insert: Omit<AdminLog, 'id' | 'created_at'>;
+                Update: never;
+            };
+            user_notifications: {
+                Row: UserNotification;
+                Insert: Omit<UserNotification, 'id' | 'created_at'>;
+                Update: Partial<Omit<UserNotification, 'id' | 'created_at'>>;
+            };
+            guidelines: {
+                Row: Guideline;
+                Insert: Omit<Guideline, 'id' | 'created_at'>;
+                Update: Partial<Omit<Guideline, 'id' | 'created_at'>>;
+            };
+            dog_stats: {
+                Row: DogStats;
+                Insert: never;
+                Update: never;
+            };
         };
         Views: {
             dog_summary: {
-                Row: DogSummary;
+                Row: {
+                    dog_id: string;
+                    name: string;
+                    last_fed_at: string | null;
+                    behaviour_score: number;
+                };
+            };
+        };
+        Functions: {
+            approve_username: {
+                Args: {
+                    target_user: string;
+                };
+                Returns: void;
+            };
+            reject_username: {
+                Args: {
+                    target_user: string;
+                };
+                Returns: void;
+            };
+            add_points: {
+                Args: {
+                    user_id: string;
+                    points_to_add: number;
+                };
+                Returns: void;
+            };
+            ensure_public_user: {
+                Args: {
+                    user_email?: string | null;
+                };
+                Returns: void;
             };
         };
     };

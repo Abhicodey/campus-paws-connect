@@ -36,7 +36,7 @@ const UsernameSetup = () => {
     }
 
     // If user already requested a username, show pending state
-    if (profile?.requested_username && !profile?.username_verified) {
+    if (profile?.username_pending && profile?.username_status === 'pending') {
         return (
             <div className="min-h-dvh bg-background flex flex-col">
                 <div className="flex-1 flex flex-col items-center justify-center px-6">
@@ -59,7 +59,7 @@ const UsernameSetup = () => {
                         </h1>
 
                         <p className="text-muted-foreground text-sm mb-4">
-                            Your username request <span className="font-medium text-foreground">@{profile.requested_username}</span> is
+                            Your username request <span className="font-medium text-foreground">@{profile.username_pending}</span> is
                             being reviewed by the community president.
                         </p>
 
@@ -101,9 +101,11 @@ const UsernameSetup = () => {
         setSubmitting(true);
 
         try {
-            const { data, error } = await supabase.rpc('request_username_change', {
-                new_username: trimmedUsername
-            });
+            // Direct update to username_pending (trigger handles status)
+            const { error } = await supabase
+                .from('users')
+                .update({ username_pending: trimmedUsername } as any)
+                .eq('id', authUser.id);
 
             if (error) {
                 toast({

@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { getGalleryImageUrl } from '@/lib/galleryUtils';
+import { toast } from '@/hooks/use-toast';
 import type { Dog, GalleryImage, User, UserReport } from '@/types/database.types';
 
 // ============================================================================
@@ -33,39 +35,53 @@ function assertAdminData(queryName: string, data: any[], role: string | undefine
 
 export interface UsernameRequest {
     id: string;
-    requested_username: string | null;
+    username_pending: string | null;
     username: string | null;
-    username_verified: boolean;
+    username_status: 'pending' | 'approved' | 'rejected' | null;
     role: string;
     created_at: string;
 }
 
 export function usePendingUsernames() {
     const { isPresident, profile } = useAuth();
+    const queryClient = useQueryClient();
+
+    // specific subscription for realtime updates
+    useEffect(() => {
+        if (!isPresident) return;
+
+        const channel = supabase
+            .channel('admin-pending-usernames')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'users'
+                },
+                (payload) => {
+                    if (isDev) console.log('[REALTIME] Users table changed:', payload);
+                    queryClient.invalidateQueries({ queryKey: ['admin', 'pending-usernames'] });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [isPresident, queryClient]);
 
     return useQuery({
         queryKey: ['admin', 'pending-usernames'],
         queryFn: async () => {
-            // DEBUG: First fetch ALL users to see the actual column structure
-            const { data: allUsers, error: debugError } = await supabase
-                .from('users')
-                .select('*')
-                .limit(10);
-
-            if (isDev) {
-                console.log('[DEBUG] ALL USERS (first 10):', allUsers);
-                console.log('[DEBUG] Sample user structure:', allUsers?.[0]);
-                console.log('[DEBUG] Error:', debugError);
-            }
-
-            // Now try the actual query with only requested_username filter
+            // New Logic: Filter by username_status = 'pending'
             const { data, error } = await supabase
                 .from('users')
                 .select('*')
-                .not('requested_username', 'is', null)
+                .eq('username_status', 'pending')
+                .not('username_pending', 'is', null)
                 .order('created_at', { ascending: true });
 
-            // DEV: Log query result
             logAdminQuery('usePendingUsernames', data, error);
 
             if (error) {
@@ -73,12 +89,11 @@ export function usePendingUsernames() {
                 throw new Error(`Permission denied or query failed: ${error.message}`);
             }
 
-            // DEV: Warn if empty for president
             assertAdminData('usePendingUsernames', data || [], profile?.role);
 
             return (data || []) as UsernameRequest[];
         },
-        enabled: isPresident,
+        enabled: !!isPresident,
         retry: 1,
     });
 }
@@ -89,6 +104,25 @@ export function usePendingUsernames() {
 
 export function usePendingDogs() {
     const { isPresident, profile } = useAuth();
+    const queryClient = useQueryClient();
+
+    // Realtime: auto-refresh panel when a new dog is submitted
+    useEffect(() => {
+        if (!isPresident) return;
+
+        const channel = supabase
+            .channel('admin-pending-dogs')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'dogs' },
+                () => {
+                    queryClient.invalidateQueries({ queryKey: ['admin', 'pending-dogs'] });
+                }
+            )
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+    }, [isPresident, queryClient]);
 
     return useQuery({
         queryKey: ['admin', 'pending-dogs'],
@@ -99,6 +133,7 @@ export function usePendingDogs() {
                     *,
                     creator:created_by (username)
                 `)
+                .eq('status', 'pending')       // Only true pending submissions
                 .eq('verified', false)
                 .eq('is_active', true)
                 .order('created_at', { ascending: false });
@@ -135,8 +170,7 @@ export function usePendingImages() {
                 .eq('status', 'pending')
                 .order('created_at', { ascending: false });
 
-            console.log('[ADMIN][PENDING IMAGES RAW]', { data, error, count });
-
+            // console.log('[ADMIN][PENDING IMAGES RAW]', { data, error, count });
             logAdminQuery('usePendingImages', data, error);
 
             if (error) {
@@ -220,7 +254,6 @@ export function useApproveDog() {
                 .eq('id', dogId);
 
             if (error) {
-                // Handle unique constraint violation
                 if (error.code === '23505') {
                     throw new Error('This QR code is already assigned to another dog');
                 }
@@ -280,7 +313,6 @@ export function useApproveImage() {
 
                 if (moveError) {
                     console.error('[ADMIN] Move error:', moveError);
-                    // Still approve in DB even if move fails
                 }
             }
 
@@ -346,28 +378,12 @@ export function useApproveUsername() {
     return useMutation({
         mutationFn: async ({ userId, username }: { userId: string; username: string }) => {
             if (isDev) {
-                console.log('[ADMIN MUTATION] Approving username:', { userId, username });
+                console.log('[ADMIN MUTATION] Approving username via RPC:', { userId, username });
             }
 
-            // First get current user data
-            const { data: userData, error: fetchError } = await supabase
-                .from('users')
-                .select('requested_username')
-                .eq('id', userId)
-                .single();
-
-            if (fetchError) throw new Error(fetchError.message);
-            if (!userData) throw new Error('User not found');
-
-            // Approve: set username, clear requested_username, set verified
-            const { error } = await supabase
-                .from('users')
-                .update({
-                    username: userData.requested_username,
-                    requested_username: null,
-                    username_verified: true,
-                } as any)
-                .eq('id', userId);
+            const { error } = await supabase.rpc('approve_username', {
+                target_user: userId
+            });
 
             if (error) throw new Error(error.message);
             return userId;
@@ -375,6 +391,7 @@ export function useApproveUsername() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'pending-usernames'] });
             queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+            toast({ title: "Username approved! ✅", description: "The user can now participate." });
         },
     });
 }
@@ -385,19 +402,19 @@ export function useRejectUsername() {
     return useMutation({
         mutationFn: async (userId: string) => {
             if (isDev) {
-                console.log('[ADMIN MUTATION] Rejecting username:', userId);
+                console.log('[ADMIN MUTATION] Rejecting username via RPC:', userId);
             }
 
-            const { error } = await supabase
-                .from('users')
-                .update({ requested_username: null } as any)
-                .eq('id', userId);
+            const { error } = await supabase.rpc('reject_username', {
+                target_user: userId
+            });
 
             if (error) throw new Error(error.message);
             return userId;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'pending-usernames'] });
+            toast({ title: "Username rejected", description: "The user will need to choose another username." });
         },
     });
 }

@@ -2,32 +2,14 @@
 import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { AuthError } from "@supabase/supabase-js";
+import { withTimeout, DEFAULT_QUERY_TIMEOUT_MS } from "@/lib/queryTimeout";
 
-// Profile type from public.users (NOT auth.users)
-interface UserProfile {
-    id: string;
-    role: "student" | "president" | "admin";
-    username: string | null;
-    username_verified: boolean;
-    avatar_url: string | null;
-    points: number;
-    created_at?: string;
-    requested_username?: string | null;
-    is_super_admin?: boolean;
-    is_suspended?: boolean;
-    suspended_until?: string | null;
-    suspended_reason?: string | null;
-    username_status?: 'approved' | 'pending' | 'rejected';
-    avatar_status?: 'approved' | 'pending' | 'rejected';
-    username_pending?: string | null;
-    avatar_pending?: string | null;
-    next_username_change?: string | null;
-    avatar_updated_at?: string | null;
-    birthdate?: string | null;
-    birth_month?: number | null;
-    birth_day?: number | null;
-    birthdate_updated_at?: string | null;
-}
+import { User } from "@/types/database.types";
+
+const PROFILE_LOAD_MAX_MS = 12_000; // Safety: stop showing profile loading after 12s
+
+// UserProfile alias for backward compatibility or clarity
+type UserProfile = User;
 
 type AuthContextType = {
     authUser: any;
@@ -64,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [profileLoading, setProfileLoading] = useState(true);
-    const fetchedRef = useRef(false);
+    // fetchedRef removed as per new hydration logic
 
     // Generate temporary username from email
     const generateTempUsername = (email: string): string => {
@@ -73,89 +55,87 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return `${base}_${suffix}`;
     };
 
-    // Fetch profile from public.users
+    // Fetch profile from public.users (always clears profileLoading when done)
     const fetchProfile = async (userId: string, userEmail?: string) => {
-        const { data, error } = await supabase
-            .from("users")
-            .select(`
-                id,
-                role,
-                username,
-                username_verified,
-                avatar_url,
-                points,
-                requested_username,
-                is_super_admin,
-                is_suspended,
-                suspended_until,
-                suspended_reason,
-                username_status,
-                avatar_status,
-                username_pending,
-                avatar_pending,
-                next_username_change,
-                avatar_updated_at,
-                birthdate,
-                birth_month,
-                birth_day,
-                birthdate_updated_at
-            `)
-            .eq("id", userId)
-            .single();
+        try {
+            const { data, error } = await supabase
+                .from("users")
+                .select("*")
+                .eq("id", userId)
+                .maybeSingle();
 
-        if (error || !data) {
-            console.error("Profile fetch failed:", error);
-            setProfileLoading(false);
-            return;
-        }
-
-        let profileData = data as UserProfile;
-        console.log("ROLE FROM DB:", profileData.role);
-
-        // Check if user is suspended
-        if (profileData.is_suspended) {
-            // Check if suspension has expired
-            if (profileData.suspended_until && new Date(profileData.suspended_until) < new Date()) {
-                // Auto-remove expired suspension
-                await supabase
+            if (error || !data) {
+                console.error("Profile fetch failed:", error);
+                // New users: DB trigger may not have created public.users yet — ensure row, then retry
+                await (supabase as any).rpc("ensure_public_user", { user_email: userEmail ?? null });
+                await new Promise((r) => setTimeout(r, 800));
+                const { data: retryData, error: retryError } = await supabase
                     .from("users")
-                    // @ts-ignore
-                    .update({ is_suspended: false, suspended_until: null, suspended_reason: null } as any)
-                    .eq("id", userId);
-                profileData = { ...profileData, is_suspended: false, suspended_until: null, suspended_reason: null };
-            } else {
-                // User is still suspended - force logout
-                await supabase.auth.signOut();
-                const reason = profileData.suspended_reason || "Please contact support for details.";
-                alert(`Your account has been suspended.\n\nReason: ${reason}`);
+                    .select("*")
+                    .eq("id", userId)
+                    .maybeSingle();
+                if (!retryError && retryData) {
+                    let profileData = retryData as UserProfile;
+                    if (profileData.role === "student" && !profileData.username && !profileData.username_pending && userEmail) {
+                        const tempUsername = generateTempUsername(userEmail);
+                        await (supabase.from("users") as any).update({ username_pending: tempUsername }).eq("id", userId);
+                        profileData = { ...profileData, username_pending: tempUsername };
+                    }
+                    setProfile(profileData);
+                    setProfileLoading(false);
+                    return;
+                }
                 setProfileLoading(false);
                 return;
             }
-        }
 
-        // Auto-generate username for students without one
-        if (
-            profileData.role === "student" &&
-            !profileData.username &&
-            !profileData.requested_username &&
-            userEmail
-        ) {
-            const tempUsername = generateTempUsername(userEmail);
-            console.log("Auto-generating username:", tempUsername);
+            let profileData = data as UserProfile;
 
-            const { error: updateError } = await supabase
-                .from("users")
-                // @ts-ignore
-                .update({ requested_username: tempUsername } as any)
-                .eq("id", userId);
-
-            if (!updateError) {
-                profileData = { ...profileData, requested_username: tempUsername };
+            // Check if user is suspended
+            if (profileData.is_suspended) {
+                // Check if suspension has expired
+                if (profileData.suspended_until && new Date(profileData.suspended_until) < new Date()) {
+                    // Auto-remove expired suspension
+                    await supabase
+                        .from("users")
+                        // @ts-ignore
+                        .update({ is_suspended: false, suspended_until: null, suspended_reason: null } as any)
+                        .eq("id", userId);
+                    profileData = { ...profileData, is_suspended: false, suspended_until: null, suspended_reason: null };
+                } else {
+                    // User is still suspended - force logout
+                    await supabase.auth.signOut();
+                    const reason = profileData.suspended_reason || "Please contact support for details.";
+                    alert(`Your account has been suspended.\n\nReason: ${reason}`);
+                    setProfileLoading(false);
+                    return;
+                }
             }
-        }
 
-        setProfile(profileData);
-        setProfileLoading(false);
+            // Auto-generate username for students without one (only if none set)
+            if (
+                profileData.role === "student" &&
+                !profileData.username &&
+                !profileData.username_pending &&
+                userEmail
+            ) {
+                const tempUsername = generateTempUsername(userEmail);
+
+                const { error: updateError } = await supabase
+                    .from("users")
+                    // @ts-ignore
+                    .update({ username_pending: tempUsername } as any)
+                    .eq("id", userId);
+
+                if (!updateError) {
+                    profileData = { ...profileData, username_pending: tempUsername };
+                }
+            }
+
+            setProfile(profileData);
+        } finally {
+            setProfileLoading(false);
+        }
     };
 
     // Refresh profile (for manual refresh after updates)
@@ -164,31 +144,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Do not set loading state to avoid flicker
             const { data } = await supabase
                 .from("users")
-                .select(`
-                    id,
-                    role,
-                    username,
-                    username_verified,
-                    avatar_url,
-                    points,
-                    requested_username,
-                    is_super_admin,
-                    is_suspended,
-                    suspended_until,
-                    suspended_reason,
-                    username_status,
-                    avatar_status,
-                    username_pending,
-                    avatar_pending,
-                    next_username_change,
-                    avatar_updated_at,
-                    birthdate,
-                    birth_month,
-                    birth_day,
-                    birthdate_updated_at
-                `)
+                .select("*")
                 .eq("id", authUser.id)
-                .single();
+                .maybeSingle();
 
             if (data) {
                 // IMPORTANT: Clone the object to force React to detect a state change
@@ -203,75 +161,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(({ data }) => {
-            const user = data.session?.user ?? null;
-            setAuthUser(user);
-            setAuthLoading(false);
+        let mounted = true;
 
-            if (user && !fetchedRef.current) {
-                fetchedRef.current = true;
-                fetchProfile(user.id, user.email);
-            } else {
-                setProfileLoading(false);
-            }
+        // ── DIAGNOSTIC: check session immediately on mount ──
+        supabase.auth.getSession().then(({ data }) => {
+            console.log("[AUTH] getSession on mount:", data.session);
         });
 
-        // Listen for auth changes
+        // onAuthStateChange is the SINGLE source of truth for all auth state.
+        // This fires INITIAL_SESSION on mount (including after OAuth callback),
+        // SIGNED_IN after login, SIGNED_OUT after logout, TOKEN_REFRESHED, etc.
         const { data: listener } = supabase.auth.onAuthStateChange(
-            (_event, session) => {
-                const user = session?.user ?? null;
-                setAuthUser(user);
-                setAuthLoading(false);
+            async (event, session) => {
+                console.log("[AUTH] Auth event:", event, "| user:", session?.user?.email ?? null);
+                if (!mounted) return;
 
-                if (user && !fetchedRef.current) {
-                    fetchedRef.current = true;
-                    fetchProfile(user.id, user.email);
-                } else if (!user) {
+                // INITIAL_SESSION fires on mount — this is what resolves after OAuth.
+                // SIGNED_IN fires on explicit login. Both need the same handling.
+                if (
+                    event === 'INITIAL_SESSION' ||
+                    event === 'SIGNED_IN' ||
+                    event === 'TOKEN_REFRESHED'
+                ) {
+                    try {
+                        if (session?.user) {
+                            setAuthUser(session.user);
+                            setProfileLoading(true);
+                            await fetchProfile(session.user.id, session.user.email ?? undefined);
+                        } else {
+                            // No session = definitely not logged in
+                            setAuthUser(null);
+                            setProfile(null);
+                            setProfileLoading(false);
+                        }
+                    } catch (err) {
+                        console.error("[AUTH] Error in auth handler:", err);
+                        setProfileLoading(false);
+                    } finally {
+                        setAuthLoading(false);
+                    }
+                    return;
+                }
+
+                if (event === 'SIGNED_OUT') {
+                    setAuthUser(null);
                     setProfile(null);
                     setProfileLoading(false);
-                    fetchedRef.current = false;
+                    setAuthLoading(false);
+                    return;
                 }
             }
         );
 
-        // REALTIME SUBSCRIPTION FOR PROFILE UPDATES
-        // This ensures that if the username/avatar is updated in the DB, the UI reflects it instantly
-        let profileSubscription: any = null;
-
-        supabase.auth.getSession().then(({ data }) => {
-            const userId = data.session?.user?.id;
-            if (userId) {
-                profileSubscription = supabase
-                    .channel('public:users')
-                    .on(
-                        'postgres_changes',
-                        {
-                            event: 'UPDATE',
-                            schema: 'public',
-                            table: 'users',
-                            filter: `id=eq.${userId}`,
-                        },
-                        (payload) => {
-                            console.log("Realtime profile update:", payload.new);
-                            setProfile(payload.new as UserProfile);
-                        }
-                    )
-                    .subscribe();
-            }
-        });
+        // Safety: if profile is still loading after PROFILE_LOAD_MAX_MS, stop so UI can render
+        const safetyTimer = setTimeout(() => {
+            setProfileLoading((prev) => (prev ? false : prev));
+        }, PROFILE_LOAD_MAX_MS);
 
         return () => {
+            mounted = false;
+            clearTimeout(safetyTimer);
             listener.subscription.unsubscribe();
-            if (profileSubscription) supabase.removeChannel(profileSubscription);
         };
     }, []);
+
 
     // Auth actions
     const signInWithGoogle = async () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",
-            options: { redirectTo: `${window.location.origin}/` },
+            options: {
+                redirectTo: window.location.origin,
+                queryParams: {
+                    prompt: "select_account", // Always show Google account picker
+                },
+            },
         });
         return { error };
     };
@@ -294,13 +258,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await supabase.auth.signOut();
         setAuthUser(null);
         setProfile(null);
-        fetchedRef.current = false;
+        // fetchedRef cleanup removed
     };
 
     // Computed states
     const isLoggedIn = !!authUser;
     const isPresident = profile?.role === "president" || profile?.role === "admin";
-    const canParticipate = isPresident || profile?.username_verified === true;
+    const canParticipate = isPresident || profile?.username_status === 'approved';
 
     return (
         <AuthContext.Provider

@@ -10,7 +10,7 @@ interface UserProfileData {
 }
 
 export function useUserProfile() {
-    const { user: contextUser, authUser } = useAuth();
+    const { profile: contextUser, authUser } = useAuth();
 
     return useQuery({
         queryKey: ['user-profile', authUser?.id],
@@ -48,7 +48,7 @@ export function useUserProfile() {
                 const { count: higherRanked } = await supabase
                     .from('users')
                     .select('*', { count: 'exact', head: true })
-                    .eq('username_verified', true)
+                    .eq('username_status', 'approved')
                     .eq('is_hidden', false)
                     .eq('is_active', true)
                     .neq('role', 'president')      // Exclude presidents from ranking

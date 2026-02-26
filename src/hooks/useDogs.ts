@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { withTimeout, DEFAULT_QUERY_TIMEOUT_MS } from '@/lib/queryTimeout';
 import type { Dog } from '@/types/database.types';
 
 export function useDogs(searchQuery?: string) {
@@ -15,18 +16,19 @@ export function useDogs(searchQuery?: string) {
                 .order('name', { ascending: true });
 
             if (searchQuery) {
-                // Search by name or location (soft_locations is an array)
                 query = query.or(`name.ilike.%${searchQuery}%`);
             }
 
-            const { data, error } = await query;
+            const { data, error } = await withTimeout(
+                query,
+                DEFAULT_QUERY_TIMEOUT_MS,
+                'Loading dogs timed out'
+            );
 
             if (error) {
                 throw new Error(error.message);
             }
 
-            // If there's a search query, also filter by location on client side
-            // since Supabase doesn't support ilike on array fields easily
             if (searchQuery && data) {
                 const lowerQuery = searchQuery.toLowerCase();
                 return data.filter(
@@ -38,6 +40,8 @@ export function useDogs(searchQuery?: string) {
 
             return (data ?? []) as Dog[];
         },
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60 * 5,
+        retry: 1,
+        retryDelay: 2000,
     });
 }

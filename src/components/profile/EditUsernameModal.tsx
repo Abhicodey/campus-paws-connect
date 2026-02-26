@@ -33,22 +33,16 @@ export default function EditUsernameModal({ user, profile, onClose }: EditUserna
             const updates: any = {};
 
             if (isPresident) {
-                // President Bypass: Direct Update
+                // President Bypass: Direct Update (Atomic)
                 updates.username = username;
                 updates.username_status = 'approved';
                 updates.username_pending = null;
-                // updates.username_updated_at = new Date().toISOString(); // Optional if needed
+                updates.username_last_changed = new Date().toISOString();
+                updates.next_username_change = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
             } else {
-                // Normal User: Request Change
-                updates.username_pending = username !== profile.username ? username : null;
-
-                if (updates.username_pending) {
-                    updates.username_status = "pending";
-                } else if (username === profile.username) {
-                    // Reverting request
-                    updates.username_pending = null;
-                    updates.username_status = "approved";
-                }
+                // Normal User: Just set pending
+                // The trigger 'prevent_early_username_change' will auto-set status to 'pending'
+                updates.username_pending = username;
             }
 
             const { error } = await (supabase.from("users") as any)

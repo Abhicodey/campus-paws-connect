@@ -18,6 +18,7 @@ import AdminPanel from "./pages/AdminPanel";
 import ScanQR from "./pages/ScanQR";
 import Login from "./pages/Login";
 import UsernameSetup from "./pages/UsernameSetup";
+
 import ReportDog from "./pages/ReportDog";
 import Guidelines from "./pages/Guidelines";
 import Community from "./pages/Community";
@@ -47,6 +48,7 @@ const App = () => (
               {/* Standalone Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/setup-username" element={<UsernameSetup />} />
+
 
               {/* App Layout Routes */}
               <Route element={<AppLayout />}>

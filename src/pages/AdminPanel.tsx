@@ -53,12 +53,12 @@ const EmptyState = ({ icon, title, message, hint }: { icon: React.ReactNode; tit
   </div>
 );
 
-type TabType = "pending" | "verified" | "naming" | "users";
+type TabType = "pending" | "verified" | "naming" | "users" | "usernames";
 
 const AdminPanel = () => {
   const navigate = useNavigate();
   const { profile, isPresident } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>("pending");
+  const [activeTab, setActiveTab] = useState<TabType>("usernames");
   const [editingDogId, setEditingDogId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [qrCode, setQrCode] = useState("");
@@ -95,7 +95,6 @@ const AdminPanel = () => {
 
   // Handlers
 
-
   const handleRejectDog = (id: string) => {
     rejectDog.mutate(id, {
       onSuccess: () => toast({ title: "Profile rejected", description: "The submitter will be notified." }),
@@ -117,35 +116,21 @@ const AdminPanel = () => {
     });
   };
 
-  const handleApproveUsername = async (userId: string, username: string) => {
-    try {
-      const { error } = await supabase.rpc('approve_username_change', {
-        target_user_id: userId
-      });
-
-      if (error) throw error;
-
-      toast({ title: "Username approved! ✅", description: "The user can now participate." });
-      refetchUsernames();
-    } catch (err: any) {
-      toast({ title: "Failed", description: err.message, variant: "destructive" });
-    }
+  const handleApproveUsername = (userId: string, username: string) => {
+    approveUsername.mutate({ userId, username }, {
+      onSuccess: () => toast({ title: "Username approved! ✅", description: "The user can now participate." }),
+      onError: (err) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
+    });
   };
 
-  const handleRejectUsername = async (userId: string) => {
-    try {
-      const { error } = await supabase.rpc('reject_username_change', {
-        target_user_id: userId
-      });
-
-      if (error) throw error;
-
-      toast({ title: "Username rejected", description: "The user will need to choose another username." });
-      refetchUsernames();
-    } catch (err: any) {
-      toast({ title: "Failed", description: err.message, variant: "destructive" });
-    }
+  const handleRejectUsername = (userId: string) => {
+    rejectUsername.mutate(userId, {
+      onSuccess: () => toast({ title: "Username rejected", description: "The user will need to choose another username." }),
+      onError: (err) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
+    });
   };
+
+  // ...
 
   const handleHideUser = (userId: string, reportId: string) => {
     hideUser.mutate(userId, {
@@ -235,6 +220,7 @@ const AdminPanel = () => {
   };
 
   const tabs: { key: TabType; label: string; icon: React.ReactNode; count: number }[] = [
+    { key: "usernames", label: "Username Requests", icon: <User className="w-4 h-4" />, count: pendingUsernames?.length || 0 },
     { key: "pending", label: "Pending Reports", icon: <AlertTriangle className="w-4 h-4" />, count: pendingDogs?.filter((d: any) => !d.verified).length || 0 },
     { key: "verified", label: "Verified Dogs", icon: <Dog className="w-4 h-4" />, count: pendingDogs?.filter((d: any) => d.qr_code).length || 0 },
     { key: "naming", label: "Needs Naming", icon: <Sparkles className="w-4 h-4" />, count: pendingDogs?.filter((d: any) => !d.official_name).length || 0 },
@@ -361,8 +347,54 @@ const AdminPanel = () => {
 
         {/* Content */}
         <div className="space-y-3">
-          {/* Manage Users Tab (Superadmin) */}
-          {activeTab === "users" && (
+          {/* Username Requests Tab */}
+          {activeTab === "usernames" && (
+            usernamesLoading ? (
+              <LoadingState message="Loading username requests..." />
+            ) : usernamesError ? (
+              <ErrorState message="Unable to load requests" detail={(usernamesError as Error).message} />
+            ) : pendingUsernames && pendingUsernames.length > 0 ? (
+              <div className="space-y-3">
+                {pendingUsernames.map((user, index) => (
+                  <div key={user.id} className="card-warm p-4 animate-in slide-in-from-bottom-2" style={{ animationDelay: `${index * 50}ms` }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                          {user.username_pending?.[0]?.toUpperCase() || 'U'}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-lg">{user.username_pending}</p>
+                          <p className="text-xs text-muted-foreground">Original: {user.username || 'None'}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApproveUsername(user.id, user.username_pending!)}
+                          disabled={approveUsername.isPending}
+                          className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                          title="Approve"
+                        >
+                          <Check className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleRejectUsername(user.id)}
+                          disabled={rejectUsername.isPending}
+                          className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                          title="Reject"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState icon={<User className="w-16 h-16" />} title="No username requests" message="All users have been verified." />
+            )
+          )}
+
+          {/* Manage Users Tab (Superadmin) */}          {activeTab === "users" && (
             usersLoading ? (
               <LoadingState message="Loading all users..." />
             ) : usersError ? (

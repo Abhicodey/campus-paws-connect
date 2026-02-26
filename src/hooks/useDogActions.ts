@@ -53,7 +53,6 @@ export function useDogActions() {
             const pointsToAward = pointsMap[actionType] || 2;
 
             try {
-                // @ts-ignore - RPC not in types yet
                 await supabase.rpc('add_points', {
                     user_id: user.id,
                     points_to_add: pointsToAward

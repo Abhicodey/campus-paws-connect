@@ -14,14 +14,14 @@ export function useUsernameStatus() {
     return {
         loading: authLoading || profileLoading,
         role: profile?.role ?? null,
-        usernameVerified: profile?.username_verified ?? false,
+        usernameVerified: profile?.username_status === 'approved',
         isPresident,
         canParticipate,
         // Legacy compatibility
         isLoggedIn,
-        needsUsername: isLoggedIn && profile && !profile.username && !profile.username_verified,
-        isPending: isLoggedIn && profile && profile.username && !profile.username_verified,
-        isVerified: profile?.username_verified ?? false,
+        needsUsername: isLoggedIn && profile && !profile.username && profile.username_status !== 'approved',
+        isPending: isLoggedIn && profile && profile.username_pending && profile.username_status === 'pending',
+        isVerified: profile?.username_status === 'approved',
         isAdminRole: isPresident,
         user: profile,
     };

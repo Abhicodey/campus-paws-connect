@@ -36,18 +36,8 @@ export function useReportContent() {
                 throw new Error(error.message);
             }
 
-            // 2. Hide content immediately (Frontend-side enforcement)
-            if (params.target_type === 'image') {
-                await supabase
-                    .from('gallery_images')
-                    .update({ is_hidden: true })
-                    .eq('id', params.target_id);
-            } else if (params.target_type === 'dog') {
-                await supabase
-                    .from('dogs')
-                    .update({ is_hidden: true })
-                    .eq('id', params.target_id);
-            }
+            // Note: Content hiding is handled automatically by the DB trigger
+            // `handle_user_report` — no frontend update needed here.
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'user-reports'] });
@@ -55,7 +45,7 @@ export function useReportContent() {
             queryClient.invalidateQueries({ queryKey: ['dogs'] }); // Invalidate dogs too
             toast({
                 title: "Report submitted 🚩",
-                description: "Thank you. This content has been hiddden and flagged for review.",
+                description: "Thank you. This content has been hidden and flagged for review.",
             });
         },
         onError: (err: Error) => {

@@ -6,9 +6,11 @@ import { useState } from "react";
 import { useDogs } from "@/hooks/useDogs";
 import { getBehaviourLabel, getBehaviourDisplay } from "@/types/database.types";
 import Page from "@/components/layout/Page";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Dogs = () => {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: dogs, isLoading, error } = useDogs(searchQuery);
 
@@ -90,22 +92,20 @@ const Dogs = () => {
         )}
       </div>
 
-      {/* Add Dog FAB */}
-      <div className="fixed bottom-24 right-6 md:hidden">
-        <Link
-          to="/add-dog"
-          className="w-14 h-14 bg-primary text-primary-foreground 
-            rounded-full shadow-lg shadow-primary/20 flex items-center justify-center transition-all 
-            hover:scale-[1.05] active:scale-[0.95] z-50"
-        >
-          <Plus className="w-6 h-6" />
-        </Link>
-      </div>
-
-      {/* Desktop Add Dog Button (Optional, can be in header or separate) - For now keeping FAB for mobile, maybe add header button for desktop later if needed. 
-          Actually, the original had fixed bottom FAB. 
-          The Page component handles padding. The FAB is fixed so outside flow.
-      */}
+      {/* Add Dog FAB — visible to logged-in users on all screen sizes */}
+      {isLoggedIn && (
+        <div className="fixed bottom-24 right-6 z-50">
+          <Link
+            to="/add-dog"
+            className="w-14 h-14 bg-primary text-primary-foreground 
+              rounded-full shadow-lg shadow-primary/30 flex items-center justify-center transition-all 
+              hover:scale-[1.05] active:scale-[0.95]"
+            aria-label="Add dog"
+          >
+            <Plus className="w-6 h-6" />
+          </Link>
+        </div>
+      )}
     </Page>
   );
 };

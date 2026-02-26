@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { withTimeout, DEFAULT_QUERY_TIMEOUT_MS } from '@/lib/queryTimeout';
 import { getGalleryImageUrl } from '@/lib/galleryUtils';
 
 export interface GalleryImageRow {
@@ -53,31 +54,36 @@ export function useGallery() {
     return useQuery({
         queryKey: ['gallery'],
         queryFn: async () => {
-            const { data, error } = await supabase
-                .from('gallery_images')
-                .select(`
-                    *,
-                    users (
-                        id,
-                        username,
-                        avatar_url
-                    )
-                `)
-                .eq('status', 'approved')
-                .neq('is_hidden', true)
-                .order('created_at', { ascending: false });
+            const { data, error } = await withTimeout(
+                supabase
+                    .from('gallery_images')
+                    .select(`
+                        *,
+                        users (
+                            id,
+                            username,
+                            avatar_url
+                        )
+                    `)
+                    .eq('status', 'approved')
+                    .neq('is_hidden', true)
+                    .order('created_at', { ascending: false }),
+                DEFAULT_QUERY_TIMEOUT_MS,
+                'Loading gallery timed out'
+            );
 
             if (error) {
                 throw new Error(error.message);
             }
 
-            // Generate display URLs from file paths
             const images = (data ?? []) as any[];
             return images.map((img) => ({
                 ...img,
                 display_url: getGalleryImageUrl(img.file_path),
             })) as GalleryImageWithUrl[];
         },
-        staleTime: 1000 * 60, // 1 minute (reduced from 5)
+        staleTime: 1000 * 60,
+        retry: 1,
+        retryDelay: 2000,
     });
 }
