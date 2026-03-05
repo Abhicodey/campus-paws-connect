@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowLeft, MapPin, Clock, Bone, Heart, Navigation, Edit, AlertTriangle, Loader2, Flag, Info } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import StatusTag from "@/components/StatusTag";
 import ActionButton from "@/components/ActionButton";
@@ -35,7 +36,7 @@ const DogProfile = () => {
   // Mood rating sheet state (shown when user taps "Pet")
   const [showMoodSheet, setShowMoodSheet] = useState(false);
 
-  const handleAction = (uiAction: 'feed' | 'pet' | 'location_update', emoji: string, label: string) => {
+  const handleAction = async (uiAction: 'feed' | 'pet' | 'location_update', emoji: string, label: string) => {
     if (!authUser) {
       toast({
         title: "Login required",
@@ -83,7 +84,7 @@ const DogProfile = () => {
               longitude: position.coords.longitude
             },
             {
-              onSuccess: () => toast({ title: `Thanks for caring! ${emoji}`, description: `+5 kindness points for updating location!` }),
+              onSuccess: () => toast({ title: `Thanks for caring! ${emoji}`, description: `Location updated!` }),
               onError: (err) => toast({ title: "Action failed", description: err.message, variant: "destructive" })
             }
           );
@@ -95,11 +96,11 @@ const DogProfile = () => {
       return;
     }
 
-    // --- Feeding Flow (fire immediately) ---
+    // --- Feeding Flow ---
     dogActionsMutation.mutate(
       { dogId: id, actionType: 'feeding' },
       {
-        onSuccess: () => toast({ title: `Thanks for caring! ${emoji}`, description: `+10 kindness points for feeding ${dogData?.dog.official_name || dogData?.dog.name}!` }),
+        onSuccess: () => toast({ title: `Thanks for caring! ${emoji}`, description: `+5 points for feeding ${dogData?.dog.name}!` }),
         onError: (err) => toast({ title: "Action failed", description: err.message, variant: "destructive" })
       }
     );
@@ -160,7 +161,8 @@ const DogProfile = () => {
   }
 
   const { dog, summary } = dogData;
-  const feedingStatus = getFeedingStatus(summary?.last_fed_at || null);
+  const feedTime = stats?.last_fed || stats?.last_fed_at || summary?.last_fed_at || null;
+  const feedingStatus = getFeedingStatus(feedTime);
   const feedingDisplay = getFeedingStatusDisplay(feedingStatus);
   const behaviourLabel = getBehaviourLabel(summary?.behaviour_score || 0);
   const behaviourDisplay = getBehaviourDisplay(behaviourLabel);
@@ -181,9 +183,14 @@ const DogProfile = () => {
     }
   };
 
-  const lastFedText = summary?.last_fed_at
-    ? formatDistanceToNow(new Date(summary.last_fed_at), { addSuffix: true })
+  const lastFedText = feedTime
+    ? formatDistanceToNow(new Date(feedTime), { addSuffix: true })
     : 'Unknown';
+
+  const needsFeeding = stats?.needs_feeding ?? true;
+
+  const dynamicNatureLabel = stats?.nature_label || behaviourDisplay.text;
+  const dynamicNatureType = stats?.nature_type || getStatusType();
 
   return (
     <>
@@ -215,7 +222,7 @@ const DogProfile = () => {
                 <div className="flex items-center gap-2 text-muted-foreground mt-2">
                   <MapPin className="w-4 h-4 shrink-0" />
                   <span className="text-sm font-medium">
-                    {dog.soft_locations?.[0] || "Campus"}
+                    {dog.soft_locations?.[0] || "Campus"} {stats?.avg_lat && stats?.avg_lon ? `(${stats.avg_lat}, ${stats.avg_lon})` : ''}
                   </span>
                 </div>
               </div>
@@ -223,10 +230,10 @@ const DogProfile = () => {
 
             {/* Status Tags */}
             <div className="flex flex-wrap gap-2 mt-5">
-              <StatusTag type={getStatusType()} label={behaviourDisplay.text} />
+              <StatusTag type={dynamicNatureType} label={dynamicNatureLabel} />
               <StatusTag
-                type={feedingStatus === 'recently_fed' ? 'friendly' : feedingStatus === 'due_soon' ? 'shy' : 'care'}
-                label={feedingDisplay.label}
+                type={needsFeeding ? 'care' : 'friendly'}
+                label={needsFeeding ? 'Needs feeding' : 'Recently fed'}
               />
             </div>
 
@@ -242,7 +249,7 @@ const DogProfile = () => {
                 <div className="flex flex-col">
                   <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Interactions</span>
                   <span className="text-xl font-bold mt-1">
-                    {stats.total_interactions || 0}
+                    {stats.interactions ?? stats.total_interactions ?? 0}
                   </span>
                 </div>
               </div>

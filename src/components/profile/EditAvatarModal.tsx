@@ -78,25 +78,28 @@ export default function EditAvatarModal({ user, profile, onClose }: EditAvatarMo
     }
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl w-full max-w-sm overflow-hidden shadow-xl animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 border border-white/20">
 
-                <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                    <h2 className="font-semibold text-lg">Change Profile Photo</h2>
-                    <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
+                <div className="p-5 border-b flex justify-between items-center bg-gray-50/80 backdrop-blur-sm">
+                    <div>
+                        <h2 className="font-bold text-gray-900 text-lg">Change Photo</h2>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mt-0.5">Profile Picture</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-all active:scale-95">
                         <X className="w-5 h-5 text-gray-500" />
                     </button>
                 </div>
 
-                <div className="p-6 space-y-6">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="relative group cursor-pointer w-32 h-32">
-                            <div className="w-full h-full rounded-full overflow-hidden border-4 border-gray-100 shadow-sm relative">
+                <div className="p-7 space-y-7">
+                    <div className="flex flex-col items-center gap-5">
+                        <div className="relative group cursor-pointer w-40 h-40">
+                            <div className="w-full h-full rounded-full overflow-hidden border-4 border-gray-100 shadow-xl relative ring-4 ring-primary/5 transition-all group-hover:ring-primary/20">
                                 {previewUrl ? (
                                     <img src={previewUrl} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                        <User className="w-12 h-12 text-gray-400" />
+                                    <div className="w-full h-full bg-gray-50 flex items-center justify-center">
+                                        <User className="w-16 h-16 text-gray-300" />
                                     </div>
                                 )}
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
@@ -110,22 +113,25 @@ export default function EditAvatarModal({ user, profile, onClose }: EditAvatarMo
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer rounded-full"
                             />
                         </div>
-                        <p className="text-sm text-muted-foreground">Tap photo to select new image</p>
+                        <p className="text-xs text-gray-500 font-medium text-center leading-relaxed">
+                            Tap the photo to upload a new one. <br />
+                            Try to use a square image!
+                        </p>
                     </div>
 
                     <div className="flex gap-3 pt-2">
                         <button
                             onClick={onClose}
-                            className="flex-1 border py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                            className="flex-1 border-2 border-gray-100 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-200 transition-all active:scale-[0.97]"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
                             disabled={loading || !avatar}
-                            className="flex-1 bg-primary text-white py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="flex-1 bg-primary text-white py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-primary/30 transition-all active:scale-[0.97] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
                         >
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Photo"}
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save Photo"}
                         </button>
                     </div>
                 </div>

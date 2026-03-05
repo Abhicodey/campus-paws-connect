@@ -239,13 +239,19 @@ export interface Guideline {
 }
 
 export interface DogStats {
-    id: string;
-    total_interactions: number;
+    id?: string;
+    dog_id?: string;
+    total_interactions?: number;
+    interactions?: number;
     avg_mood: number | null;
-    last_fed_at: string | null;
-    last_petted_at: string | null;
-    needs_feeding: boolean;
-    nature: 'shy' | 'cautious' | 'friendly' | 'very friendly' | 'unknown';
+    last_fed_at?: string | null;
+    last_fed?: string | null;
+    last_petted_at?: string | null;
+    avg_lat: number | null;
+    avg_lon: number | null;
+    needs_feeding?: boolean;
+    nature_label?: string;
+    nature_type?: "friendly" | "shy" | "care" | "avoid";
 }
 
 export interface DogSummary {
@@ -255,6 +261,8 @@ export interface DogSummary {
     avg_mood: number | null;
     last_fed_at: string | null;
     last_petted_at: string | null;
+    avg_lat: number | null;
+    avg_lon: number | null;
     needs_feeding: boolean;
     nature: string;
     behaviour_score: number;

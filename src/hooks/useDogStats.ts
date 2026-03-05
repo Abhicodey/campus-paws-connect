@@ -33,11 +33,11 @@ export function useDogStats(dogId: string | undefined) {
         queryFn: async () => {
             if (!dogId) return null;
 
-            const { data, error } = await (supabase
-                .from('dog_stats')
+            const { data, error } = await supabase
+                .from('dog_live_stats')
                 .select('*')
-                .eq('id', dogId) as any)
-                .maybeSingle();
+                .eq('dog_id', dogId)
+                .single();
 
             if (error) {
                 console.error('Error fetching dog stats:', error);

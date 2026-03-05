@@ -76,55 +76,66 @@ export default function EditUsernameModal({ user, profile, onClose }: EditUserna
     }
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl w-full max-w-sm overflow-hidden shadow-xl animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 border border-white/20">
 
-                <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                    <h2 className="font-semibold text-lg">Change Username</h2>
-                    <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
+                {/* Header with Glassmorphism feel */}
+                <div className="p-5 border-b flex justify-between items-center bg-gray-50/80 backdrop-blur-sm">
+                    <div>
+                        <h2 className="font-bold text-gray-900 text-lg">Change Username</h2>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mt-0.5">Community Identity</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-all active:scale-95">
                         <X className="w-5 h-5 text-gray-500" />
                     </button>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-7 space-y-5">
                     {inCooldown && (
-                        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-lg text-sm flex items-start gap-2">
-                            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                        <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm flex items-start gap-3 animate-in slide-in-from-top-2">
+                            <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0 text-amber-500" />
                             <div>
-                                <p className="font-medium">Cooldown Active</p>
-                                <p className="text-xs opacity-90">You can change your username again in {cooldownDays} days.</p>
+                                <p className="font-bold">Cooldown Active</p>
+                                <p className="text-xs opacity-80 leading-relaxed">Safety first! You can update your identity again in {cooldownDays} days.</p>
                             </div>
                         </div>
                     )}
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">New Username</label>
-                        <input
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            placeholder="Enter username"
-                            disabled={!!inCooldown}
-                            className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all disabled:bg-gray-100 disabled:text-gray-500"
-                            maxLength={20}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            3-20 characters. Requires approval.
+                    <div className="space-y-2.5">
+                        <label className="text-sm font-semibold text-gray-700 ml-1">New Username</label>
+                        <div className="relative group">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium group-focus-within:text-primary transition-colors">@</span>
+                            <input
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                placeholder="Enter username"
+                                disabled={!!inCooldown}
+                                className="w-full border border-gray-200 bg-gray-50/50 pl-9 pr-4 py-3.5 rounded-xl 
+                                    text-gray-900 font-medium placeholder:text-gray-400
+                                    focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white
+                                    outline-none transition-all disabled:opacity-50 disabled:bg-gray-100 disabled:text-gray-400"
+                                maxLength={20}
+                            />
+                        </div>
+                        <p className="text-[11px] text-gray-500 flex items-center gap-1 ml-1">
+                            <span className="w-1 h-1 rounded-full bg-primary" />
+                            Requires approval by the president.
                         </p>
                     </div>
 
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex gap-3 pt-3">
                         <button
                             onClick={onClose}
-                            className="flex-1 border py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                            className="flex-1 border-2 border-gray-100 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-200 transition-all active:scale-[0.97]"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
                             disabled={loading || !!inCooldown || !username.trim()}
-                            className="flex-1 bg-primary text-white py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="flex-1 bg-primary text-white py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-primary/30 transition-all active:scale-[0.97] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
                         >
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Request Change"}
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Request Change"}
                         </button>
                     </div>
                 </div>
