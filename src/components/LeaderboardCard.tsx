@@ -34,23 +34,21 @@ const LeaderboardCard = ({ rank, name, points, avatarUrl, avatarUpdatedAt }: Lea
           !isTop3 && "bg-muted text-muted-foreground"
         )}
       >
-        {rank === 1 ? <Trophy className="w-5 h-5" /> : rank}
+        {rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank}
       </div>
 
       <div className="w-10 h-10 rounded-full bg-secondary/30 overflow-hidden flex items-center justify-center shrink-0 border border-border/50">
         {avatarUrl ? (
           <img
-            key={avatarUpdatedAt || 'avatar'}
-            src={(() => {
-              const separator = avatarUrl.includes('?') ? '&' : '?';
-              return `${avatarUrl}${separator}t=${avatarUpdatedAt || Date.now()}`;
-            })()}
+            key={avatarUpdatedAt || avatarUrl}
+            src={`${avatarUrl}${avatarUrl.includes("?") ? "&" : "?"}t=${avatarUpdatedAt ?? ""}`}
             alt={name}
+            referrerPolicy="no-referrer"
             className="w-full h-full object-cover"
           />
         ) : (
           <span className="text-lg font-medium text-secondary-foreground">
-            {name.charAt(0)}
+            {name?.charAt(0)?.toUpperCase()}
           </span>
         )}
       </div>

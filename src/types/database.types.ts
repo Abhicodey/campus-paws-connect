@@ -10,6 +10,7 @@ export type VaccineType = 'rabies' | 'dhpp' | 'unknown';
 export type VaccineSource = 'ngo' | 'vet' | 'observation';
 export type ReportStatus = 'pending' | 'reviewed' | 'action_taken' | 'hidden' | 'dismissed';
 export type UsernameStatus = 'approved' | 'pending' | 'rejected';
+export type RankType = 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
 
 // ============================================
 // Table Types
@@ -58,6 +59,7 @@ export interface User {
     birth_month?: number | null;
     birth_day?: number | null;
     birthdate_updated_at?: string | null;
+    kindness_points: number;
 
     // Legacy / Other
     app_role?: string | null;
@@ -82,7 +84,11 @@ export interface Dog {
     status: 'approved' | 'pending' | 'hidden'; // Inferred from policies
     is_active: boolean;
     is_hidden: boolean;
+    location_lat: number;
+    location_lng: number;
+    location_name: string | null;
     created_at: string;
+    updated_at?: string;
 
     // Stats (often joined)
     behaviour_score?: number;
@@ -234,10 +240,24 @@ export interface Guideline {
 
 export interface DogStats {
     id: string;
-    official_name: string | null;
+    total_interactions: number;
     avg_mood: number | null;
-    avg_lat: number | null;
-    avg_lng: number | null;
+    last_fed_at: string | null;
+    last_petted_at: string | null;
+    needs_feeding: boolean;
+    nature: 'shy' | 'cautious' | 'friendly' | 'very friendly' | 'unknown';
+}
+
+export interface DogSummary {
+    dog_id: string;
+    name: string;
+    total_interactions: number;
+    avg_mood: number | null;
+    last_fed_at: string | null;
+    last_petted_at: string | null;
+    needs_feeding: boolean;
+    nature: string;
+    behaviour_score: number;
 }
 
 // ============================================
@@ -297,6 +317,25 @@ export interface Database {
                 Insert: Omit<ImageReport, 'id' | 'created_at'>;
                 Update: never;
             };
+            kindness_actions: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    dog_id: string | null;
+                    action_type: string;
+                    points: number;
+                    created_at: string;
+                };
+                Insert: Omit<{
+                    id: string;
+                    user_id: string;
+                    dog_id: string | null;
+                    action_type: string;
+                    points: number;
+                    created_at: string;
+                }, 'id' | 'created_at'>;
+                Update: never;
+            };
             announcements: {
                 Row: Announcement;
                 Insert: Omit<Announcement, 'id' | 'created_at'>;
@@ -342,6 +381,22 @@ export interface Database {
                     behaviour_score: number;
                 };
             };
+            monthly_leaderboard: {
+                Row: {
+                    id: string;
+                    username: string | null;
+                    avatar_url: string | null;
+                    monthly_points: number;
+                };
+            };
+            lifetime_leaderboard: {
+                Row: {
+                    id: string;
+                    username: string | null;
+                    avatar_url: string | null;
+                    total_points: number;
+                };
+            };
         };
         Functions: {
             approve_username: {
@@ -366,6 +421,32 @@ export interface Database {
             ensure_public_user: {
                 Args: {
                     user_email?: string | null;
+                };
+                Returns: void;
+            };
+            reward_dog_approval: {
+                Args: {
+                    target_user: string;
+                };
+                Returns: void;
+            };
+            reward_gallery_approval: {
+                Args: {
+                    target_user: string;
+                };
+                Returns: void;
+            };
+            update_dog_location: {
+                Args: {
+                    target_dog: string;
+                    lat: number;
+                    lng: number;
+                };
+                Returns: void;
+            };
+            pet_dog: {
+                Args: {
+                    target_dog: string;
                 };
                 Returns: void;
             };
@@ -421,4 +502,12 @@ export function getBehaviourDisplay(label: BehaviourLabel): { text: string; colo
         case 'needs_space':
             return { text: 'Needs space', color: 'coral' };
     }
+}
+
+export function getRank(points: number): { type: RankType; color: string } {
+    if (points >= 5000) return { type: 'Diamond', color: '#b9f2ff' };
+    if (points >= 2000) return { type: 'Platinum', color: '#e5e4e2' };
+    if (points >= 500) return { type: 'Gold', color: '#ffd700' };
+    if (points >= 100) return { type: 'Silver', color: '#c0c0c0' };
+    return { type: 'Bronze', color: '#cd7f32' };
 }

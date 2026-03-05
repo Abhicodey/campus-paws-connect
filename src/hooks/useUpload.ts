@@ -61,12 +61,11 @@ export function useUpload() {
         return uploadFile(file, 'dogs', path);
     };
 
-    // Upload gallery image — president goes to approved/, students to pending/
-    const uploadGalleryImage = async (file: File, userRole?: string): Promise<UploadResult> => {
+    const uploadGalleryImage = async (file: File): Promise<UploadResult> => {
         const ext = file.name.split('.').pop() || 'jpg';
         const uniqueId = crypto.randomUUID();
-        const folder = (userRole === 'president' || userRole === 'admin') ? 'approved' : 'pending';
-        const path = `${folder}/${uniqueId}.${ext}`;
+        // Simplified: Store everything in 'uploads' and let the DB handle status
+        const path = `uploads/${uniqueId}.${ext}`;
         return uploadFile(file, 'gallery', path);
     };
 

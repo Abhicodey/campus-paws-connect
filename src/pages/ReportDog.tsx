@@ -19,8 +19,8 @@ const ReportDog = () => {
     const [temporaryName, setTemporaryName] = useState('');
     const [description, setDescription] = useState('');
     const [condition, setCondition] = useState<'healthy' | 'injured' | 'needs_feeding'>('healthy');
-    const [latitude, setLatitude] = useState<number | null>(null);
-    const [longitude, setLongitude] = useState<number | null>(null);
+    const [latitude, setLatitude] = useState<number | null>(31.2536);
+    const [longitude, setLongitude] = useState<number | null>(75.7050);
     const [locationError, setLocationError] = useState('');
 
     // UI state
@@ -115,11 +115,10 @@ const ReportDog = () => {
                     temporary_name: temporaryName.trim() || null,
                     description: description || `Condition: ${condition}`,
                     profile_image: publicUrl,
-                    verified: false,
-                    is_verified: false,
+                    verified: false,       // ✅ correct column (no is_verified)
                     reported_by: authUser.id,
-                    latitude,
-                    longitude,
+                    location_lat: latitude,
+                    location_lng: longitude,
                     soft_locations: [],
                     vaccination_status: 'unknown',
                     name_locked: false,
@@ -129,14 +128,9 @@ const ReportDog = () => {
 
             if (dogError) throw dogError;
 
-            // 3. Award points
-            try {
-                await supabase.rpc('add_points', { user_id: authUser.id, points_to_add: 10 });
-            } catch (err) {
-                console.error('Points failed:', err);
-            }
+            if (dogError) throw dogError;
 
-            toast({ title: 'Dog Reported!', description: 'Thank you for helping!' });
+            toast({ title: 'Dog Reported!', description: 'Thank you for helping! Points will be awarded after approval.' });
             navigate('/');
         } catch (error: any) {
             console.error('Error:', error);

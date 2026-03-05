@@ -168,9 +168,11 @@ export function usePendingImages() {
                 .from('gallery_images')
                 .select('*', { count: 'exact' })
                 .eq('status', 'pending')
+                .eq('is_hidden', false)      // ✅ explicit — only non-hidden pending images
                 .order('created_at', { ascending: false });
 
-            // console.log('[ADMIN][PENDING IMAGES RAW]', { data, error, count });
+            // Always log in dev to detect RLS blocks returning empty data silently
+            console.log('[ADMIN][PENDING IMAGES RAW]', { data, error, count });
             logAdminQuery('usePendingImages', data, error);
 
             if (error) {
@@ -191,6 +193,7 @@ export function usePendingImages() {
         retry: 1,
     });
 }
+
 
 // ============================================================================
 // USER REPORTS
@@ -233,32 +236,47 @@ export function useApproveDog() {
 
     return useMutation({
         mutationFn: async ({ dogId, name, qrCode }: { dogId: string; name: string; qrCode: string }) => {
-            // Validate QR code is provided
+            // 1. Fetch dog to get created_by
+            const { data, error: fetchError } = await supabase
+                .from('dogs')
+                .select('created_by')
+                .eq('id', dogId)
+                .single();
+
+            const dog = data as { created_by: string | null } | null;
+
+            if (fetchError || !dog) throw new Error('Dog not found');
+
+            // 2. Validate QR code
             if (!qrCode || !qrCode.trim()) {
                 throw new Error('QR code is required for verification');
             }
 
             const updateData: any = {
                 verified: true,
-                is_verified: true,
                 status: 'approved',
                 official_name: name,
                 name: name,
                 name_locked: true,
-                qr_code: qrCode.trim(), // Physical collar QR code
+                qr_code: qrCode.trim(),
             };
 
-            const { error } = await supabase
+            // 3. Update dog status
+            const { error: updateError } = await supabase
                 .from('dogs')
                 .update(updateData)
                 .eq('id', dogId);
 
-            if (error) {
-                if (error.code === '23505') {
+            if (updateError) {
+                if (updateError.code === '23505') {
                     throw new Error('This QR code is already assigned to another dog');
                 }
-                throw new Error(error.message);
+                throw new Error(updateError.message);
             }
+
+            // 4. Award Points (Handled by DB Trigger)
+            // No manual RPC needed - tr_dog_approval_points handles it
+
             return dogId;
         },
         onSuccess: () => {
@@ -292,40 +310,30 @@ export function useApproveImage() {
 
     return useMutation({
         mutationFn: async (imageId: string) => {
-            // 1. Get current image data
-            const { data: img, error: fetchError } = await supabase
+            // 1. Fetch image to get user_id
+            const { data, error: fetchError } = await supabase
                 .from('gallery_images')
-                .select('file_path')
+                .select('user_id')
                 .eq('id', imageId)
                 .single();
 
-            if (fetchError || !img) throw new Error(fetchError?.message || 'Image not found');
+            const img = data as { user_id: string | null } | null;
 
-            const oldPath = (img as any).file_path;
-            let newPath = oldPath;
+            if (fetchError || !img) throw new Error('Image not found');
 
-            // 2. Move file from pending/ to approved/ in storage
-            if (oldPath && oldPath.startsWith('pending/')) {
-                newPath = oldPath.replace('pending/', 'approved/');
-                const { error: moveError } = await supabase.storage
-                    .from('gallery')
-                    .move(oldPath, newPath);
-
-                if (moveError) {
-                    console.error('[ADMIN] Move error:', moveError);
-                }
-            }
-
-            // 3. Update DB: set status to approved, update file_path
-            const { error } = await supabase
+            // 2. Update status to approved
+            const { error: updateError } = await supabase
                 .from('gallery_images')
                 .update({
                     status: 'approved',
-                    file_path: newPath,
                 } as any)
                 .eq('id', imageId);
 
-            if (error) throw new Error(error.message);
+            if (updateError) throw new Error(updateError.message);
+
+            // 3. Award Points (Handled by DB Trigger)
+            // No manual RPC needed - tr_image_approval_points handles it
+
             return imageId;
         },
         onSuccess: () => {
@@ -461,17 +469,41 @@ export function useMarkActionTaken() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (reportId: string) => {
+        // Now accepts full report object so we can hide the target content too
+        mutationFn: async (report: { id: string; target_type?: string; target_id?: string }) => {
+            // 1. Mark report as action_taken (this also fires resolve_report_trigger on DB)
             const { error } = await supabase
                 .from('user_reports')
                 .update({ status: 'action_taken' } as any)
-                .eq('id', reportId);
+                .eq('id', report.id);
 
             if (error) throw new Error(error.message);
-            return reportId;
+
+            // 2. Immediately hide the target content on the frontend too
+            // (belt-and-suspenders alongside the DB trigger)
+            if (report.target_type === 'image' && report.target_id) {
+                await supabase
+                    .from('gallery_images')
+                    .update({ is_hidden: true, status: 'hidden' } as any)
+                    .eq('id', report.target_id);
+            } else if (report.target_type === 'dog' && report.target_id) {
+                await supabase
+                    .from('dogs')
+                    .update({ is_hidden: true, status: 'hidden', verified: false } as any)
+                    .eq('id', report.target_id);
+            } else if (report.target_type === 'user' && report.target_id) {
+                await supabase
+                    .from('users')
+                    .update({ is_hidden: true } as any)
+                    .eq('id', report.target_id);
+            }
+
+            return report.id;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'user-reports'] });
+            queryClient.invalidateQueries({ queryKey: ['gallery'] });
+            queryClient.invalidateQueries({ queryKey: ['dogs'] });
         },
     });
 }

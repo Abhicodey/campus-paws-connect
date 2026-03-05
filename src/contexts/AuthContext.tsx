@@ -163,64 +163,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         let mounted = true;
 
-        // ── DIAGNOSTIC: check session immediately on mount ──
-        supabase.auth.getSession().then(({ data }) => {
-            console.log("[AUTH] getSession on mount:", data.session);
-        });
+        const initialize = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
 
-        // onAuthStateChange is the SINGLE source of truth for all auth state.
-        // This fires INITIAL_SESSION on mount (including after OAuth callback),
-        // SIGNED_IN after login, SIGNED_OUT after logout, TOKEN_REFRESHED, etc.
+            if (!mounted) return;
+
+            if (session?.user) {
+                setAuthUser(session.user);
+                setProfileLoading(true);
+                // ✅ Do NOT await — authLoading must not block on profile fetch
+                fetchProfile(session.user.id, session.user.email ?? undefined);
+            } else {
+                setAuthUser(null);
+                setProfile(null);
+                setProfileLoading(false);
+            }
+
+            // Always resolve auth loading immediately after session check
+            setAuthLoading(false);
+        };
+
+        initialize();
+
         const { data: listener } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-                console.log("[AUTH] Auth event:", event, "| user:", session?.user?.email ?? null);
+            (_event, session) => {
                 if (!mounted) return;
 
-                // INITIAL_SESSION fires on mount — this is what resolves after OAuth.
-                // SIGNED_IN fires on explicit login. Both need the same handling.
-                if (
-                    event === 'INITIAL_SESSION' ||
-                    event === 'SIGNED_IN' ||
-                    event === 'TOKEN_REFRESHED'
-                ) {
-                    try {
-                        if (session?.user) {
-                            setAuthUser(session.user);
-                            setProfileLoading(true);
-                            await fetchProfile(session.user.id, session.user.email ?? undefined);
-                        } else {
-                            // No session = definitely not logged in
-                            setAuthUser(null);
-                            setProfile(null);
-                            setProfileLoading(false);
-                        }
-                    } catch (err) {
-                        console.error("[AUTH] Error in auth handler:", err);
-                        setProfileLoading(false);
-                    } finally {
-                        setAuthLoading(false);
-                    }
-                    return;
-                }
-
-                if (event === 'SIGNED_OUT') {
+                if (session?.user) {
+                    setAuthUser(session.user);
+                    setProfileLoading(true);
+                    // ✅ Do NOT await — authLoading must not block on profile fetch
+                    fetchProfile(session.user.id, session.user.email ?? undefined);
+                } else {
                     setAuthUser(null);
                     setProfile(null);
                     setProfileLoading(false);
-                    setAuthLoading(false);
-                    return;
                 }
+
+                setAuthLoading(false);
             }
         );
 
-        // Safety: if profile is still loading after PROFILE_LOAD_MAX_MS, stop so UI can render
-        const safetyTimer = setTimeout(() => {
-            setProfileLoading((prev) => (prev ? false : prev));
-        }, PROFILE_LOAD_MAX_MS);
-
         return () => {
             mounted = false;
-            clearTimeout(safetyTimer);
             listener.subscription.unsubscribe();
         };
     }, []);

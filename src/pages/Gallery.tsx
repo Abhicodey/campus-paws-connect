@@ -86,7 +86,7 @@ const Gallery = () => {
       return;
     }
 
-    const { path, error: uploadError } = await uploadGalleryImage(selectedFile, profile?.role);
+    const { path, error: uploadError } = await uploadGalleryImage(selectedFile);
 
     if (uploadError || !path) {
       toast({

@@ -53,7 +53,7 @@ const EmptyState = ({ icon, title, message, hint }: { icon: React.ReactNode; tit
   </div>
 );
 
-type TabType = "pending" | "verified" | "naming" | "users" | "usernames";
+type TabType = "pending" | "verified" | "naming" | "users" | "usernames" | "images" | "reports";
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -135,7 +135,8 @@ const AdminPanel = () => {
   const handleHideUser = (userId: string, reportId: string) => {
     hideUser.mutate(userId, {
       onSuccess: () => {
-        markActionTaken.mutate(reportId);
+        // Pass minimal report object — user hide doesn't need target_id since it acts directly
+        markActionTaken.mutate({ id: reportId });
         toast({ title: "User hidden", description: "The user has been hidden from public view." });
       },
       onError: (err) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
@@ -149,9 +150,9 @@ const AdminPanel = () => {
     });
   };
 
-  const handleMarkActionTaken = (reportId: string) => {
-    markActionTaken.mutate(reportId, {
-      onSuccess: () => toast({ title: "Action recorded", description: "Report marked as action taken." }),
+  const handleMarkActionTaken = (report: { id: string; target_type?: string; target_id?: string }) => {
+    markActionTaken.mutate(report, {
+      onSuccess: () => toast({ title: "Action taken ✅", description: "Report resolved and content hidden." }),
       onError: (err) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
     });
   };
@@ -220,14 +221,16 @@ const AdminPanel = () => {
   };
 
   const tabs: { key: TabType; label: string; icon: React.ReactNode; count: number }[] = [
-    { key: "usernames", label: "Username Requests", icon: <User className="w-4 h-4" />, count: pendingUsernames?.length || 0 },
-    { key: "pending", label: "Pending Reports", icon: <AlertTriangle className="w-4 h-4" />, count: pendingDogs?.filter((d: any) => !d.verified).length || 0 },
+    { key: "usernames", label: "Usernames", icon: <User className="w-4 h-4" />, count: pendingUsernames?.length || 0 },
+    { key: "images", label: "Gallery", icon: <Image className="w-4 h-4" />, count: pendingImages?.length || 0 },
+    { key: "reports", label: "Reports", icon: <Flag className="w-4 h-4" />, count: userReports?.length || 0 },
+    { key: "pending", label: "Dog Reports", icon: <AlertTriangle className="w-4 h-4" />, count: pendingDogs?.filter((d: any) => !d.verified).length || 0 },
     { key: "verified", label: "Verified Dogs", icon: <Dog className="w-4 h-4" />, count: pendingDogs?.filter((d: any) => d.qr_code).length || 0 },
-    { key: "naming", label: "Needs Naming", icon: <Sparkles className="w-4 h-4" />, count: pendingDogs?.filter((d: any) => !d.official_name).length || 0 },
+    { key: "naming", label: "Naming", icon: <Sparkles className="w-4 h-4" />, count: pendingDogs?.filter((d: any) => !d.official_name).length || 0 },
   ];
 
   if (profile?.is_super_admin) {
-    tabs.push({ key: "users", label: "Manage Users", icon: <User className="w-4 h-4" />, count: allUsers?.length || 0 });
+    tabs.push({ key: "users", label: "Users", icon: <User className="w-4 h-4" />, count: allUsers?.length || 0 });
   }
 
   const totalPending = tabs.reduce((sum, tab) => sum + tab.count, 0);
@@ -347,6 +350,63 @@ const AdminPanel = () => {
 
         {/* Content */}
         <div className="space-y-3">
+
+          {/* Gallery Images Tab */}
+          {activeTab === "images" && (
+            imagesLoading ? (
+              <LoadingState message="Loading pending gallery images..." />
+            ) : imagesError ? (
+              <ErrorState message="Unable to load images" detail={(imagesError as Error).message} />
+            ) : pendingImages && pendingImages.length > 0 ? (
+              <div className="space-y-3">
+                {pendingImages.map((img: any, index: number) => (
+                  <div key={img.id} className="card-warm p-4 animate-in slide-in-from-bottom-2" style={{ animationDelay: `${index * 50}ms` }}>
+                    <div className="flex gap-3">
+                      <img
+                        src={img.display_url}
+                        alt="Pending gallery image"
+                        className="w-24 h-24 rounded-xl object-cover bg-muted flex-shrink-0"
+                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200'; }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-amber-600 font-semibold uppercase tracking-wide">Pending Review</p>
+                        <p className="text-xs text-muted-foreground mt-1 truncate font-mono">{img.file_path}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Uploaded {new Date(img.created_at).toLocaleDateString()}
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            onClick={() => handleApproveImage(img.id)}
+                            disabled={approveImage.isPending}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-green-100 text-green-700 rounded-xl font-medium hover:bg-green-200 transition-colors text-sm disabled:opacity-50"
+                          >
+                            {approveImage.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectImage(img.id)}
+                            disabled={rejectImage.isPending}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-colors text-sm disabled:opacity-50"
+                          >
+                            {rejectImage.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={<Image className="w-16 h-16" />}
+                title="No pending images"
+                message="Student gallery uploads will appear here for review."
+                hint={isDev ? "Upload an image as a student to test" : undefined}
+              />
+            )
+          )}
+
           {/* Username Requests Tab */}
           {activeTab === "usernames" && (
             usernamesLoading ? (
@@ -717,6 +777,79 @@ const AdminPanel = () => {
                 title="All dogs verified!"
                 message="No pending dog profiles to review."
                 hint={isDev ? "Submit a dog from a student account to test" : undefined}
+              />
+            )
+          )}
+
+          {/* Reports Tab */}
+          {activeTab === "reports" && (
+            reportsLoading ? (
+              <LoadingState message="Loading reports..." />
+            ) : reportsError ? (
+              <ErrorState message="Unable to load reports" detail={(reportsError as Error).message} />
+            ) : userReports && userReports.length > 0 ? (
+              <div className="space-y-3">
+                {userReports.map((report: any, index: number) => (
+                  <div key={report.id} className="card-warm p-4 animate-in slide-in-from-bottom-2" style={{ animationDelay: `${index * 50}ms` }}>
+                    <div className="flex items-start gap-3">
+                      {/* Type badge */}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${report.target_type === 'image' ? 'bg-purple-100 text-purple-700' :
+                        report.target_type === 'dog' ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                        {report.target_type === 'image' ? <Image className="w-4 h-4" /> :
+                          report.target_type === 'dog' ? <Dog className="w-4 h-4" /> :
+                            <User className="w-4 h-4" />}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-bold uppercase tracking-wide ${report.target_type === 'image' ? 'text-purple-600' :
+                            report.target_type === 'dog' ? 'text-amber-600' :
+                              'text-red-600'
+                            }`}>
+                            {report.target_type} report
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(report.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium mt-0.5 truncate">
+                          Reason: {report.reason || 'No reason given'}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5 font-mono truncate">
+                          Target ID: {report.target_id}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => handleMarkActionTaken({ id: report.id, target_type: report.target_type, target_id: report.target_id })}
+                        disabled={markActionTaken.isPending}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-amber-100 text-amber-700 rounded-xl font-medium hover:bg-amber-200 transition-colors text-sm disabled:opacity-50"
+                      >
+                        {markActionTaken.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                        Action Taken
+                      </button>
+                      <button
+                        onClick={() => handleDismissReport(report.id)}
+                        disabled={dismissReport.isPending}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-muted text-muted-foreground rounded-xl font-medium hover:bg-muted/80 transition-colors text-sm disabled:opacity-50"
+                      >
+                        {dismissReport.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={<Flag className="w-16 h-16" />}
+                title="No pending reports"
+                message="Student reports on images, dogs, and users will appear here."
+                hint={isDev ? "Report an image or dog as a student to test" : undefined}
               />
             )
           )}

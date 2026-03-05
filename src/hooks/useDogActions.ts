@@ -43,24 +43,8 @@ export function useDogActions() {
                 throw new Error(error.message);
             }
 
-            // Award points (Field-Workflow System)
-            // Feed: 5, Pet: 2, Location: 3
-            const pointsMap: Record<string, number> = {
-                'feeding': 5,
-                'petting': 2,
-                'location_update': 3
-            };
-            const pointsToAward = pointsMap[actionType] || 2;
-
-            try {
-                await supabase.rpc('add_points', {
-                    user_id: user.id,
-                    points_to_add: pointsToAward
-                });
-            } catch (err) {
-                console.error("Points award failed", err);
-                // Don't block flow if points fail
-            }
+            // Award points (Handled by DB Trigger)
+            // No manual RPC needed - tr_interaction_points handles it
 
             return data;
         },

@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { toast } from '@/hooks/use-toast';
 import type { Dog, DogSummary, DogAction } from '@/types/database.types';
 
 interface DogProfileData {
@@ -39,22 +40,22 @@ export function useDogProfile(dogId: string | undefined) {
                 console.error('Error fetching dog summary:', summaryError);
             }
 
-            // Fetch recent actions for this dog
+            // Fetch recent actions for this dog (from interactions log)
             const { data: recentActions, error: actionsError } = await supabase
-                .from('dog_actions')
+                .from('dog_interactions')
                 .select('*')
                 .eq('dog_id', dogId)
                 .order('created_at', { ascending: false })
                 .limit(10);
 
             if (actionsError) {
-                console.error('Error fetching dog actions:', actionsError);
+                console.error('Error fetching dog interactions:', actionsError);
             }
 
             return {
                 dog: dog as Dog,
                 summary: summary as DogSummary | null,
-                recentActions: (recentActions || []) as DogAction[],
+                recentActions: (recentActions || []) as any[],
             };
         },
         enabled: !!dogId,
@@ -85,5 +86,53 @@ export function useDogByQRCode(qrCode: string | undefined) {
             return data;
         },
         enabled: !!qrCode,
+    });
+}
+
+export function useUpdateDogLocation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            dogId,
+            lat,
+            lng,
+        }: {
+            dogId: string;
+            lat: number;
+            lng: number;
+        }) => {
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
+
+            if (!user) throw new Error("Authentication required");
+
+            // Simply insert into the interactions log
+            // The DB trigger handle_point_award will:
+            // 1. Update public.dogs with the new lat/lng
+            // 2. Award 5 points to the user
+            const { error } = await supabase.from("dog_interactions").insert({
+                dog_id: dogId,
+                user_id: user.id,
+                interaction_type: "location_update",
+                latitude: lat,
+                longitude: lng,
+            } as any);
+
+            if (error) throw new Error(error.message);
+
+            return dogId;
+        },
+        onSuccess: (dogId) => {
+            queryClient.invalidateQueries({ queryKey: ["dog", dogId] });
+            queryClient.invalidateQueries({ queryKey: ["dog-stats", dogId] });
+            queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
+            queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+            toast({
+                title: "Location Updated",
+                description: "GPS coordinates recorded! 📍",
+            });
+        },
     });
 }

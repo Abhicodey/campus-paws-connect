@@ -33,8 +33,7 @@ export default function EditAvatarModal({ user, profile, onClose }: EditAvatarMo
         setLoading(true);
         try {
             const fileExt = avatar.name.split(".").pop();
-            // CORRECT PATH: userId/avatar.ext (Overwrite same file)
-            const filePath = `${user.id}/avatar.${fileExt}`;
+            const filePath = `${user.id}.${fileExt}`;
 
             const { error: uploadError } = await supabase.storage
                 .from("avatars")
@@ -50,16 +49,12 @@ export default function EditAvatarModal({ user, profile, onClose }: EditAvatarMo
             const publicUrl = publicUrlData.publicUrl;
 
             // Update directly
-            const { error, data: updateData } = await (supabase.from("users") as any)
+            const { error } = await (supabase.from("users") as any)
                 .update({
                     avatar_url: publicUrl,
-                    avatar_status: profile.role === 'president' ? 'approved' : 'pending',
                     avatar_updated_at: new Date().toISOString()
                 })
-                .eq("id", user.id)
-                .select();
-
-            console.log("DB UPDATE RESULT:", updateData, error);
+                .eq("id", user.id);
 
             if (error) throw error;
 

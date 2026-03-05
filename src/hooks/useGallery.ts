@@ -67,7 +67,7 @@ export function useGallery() {
                     `)
                     .eq('status', 'approved')
                     .neq('is_hidden', true)
-                    .order('created_at', { ascending: false }),
+                    .order('created_at', { ascending: false }) as any as Promise<any>,
                 DEFAULT_QUERY_TIMEOUT_MS,
                 'Loading gallery timed out'
             );

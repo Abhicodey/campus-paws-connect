@@ -84,7 +84,7 @@ const Profile = () => {
     navigate("/");
   };
 
-  if (authLoading || profileLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-dvh bg-background flex items-center justify-center">
         <div className="text-center">
@@ -95,10 +95,10 @@ const Profile = () => {
     );
   }
 
-  if (!profile) {
+  if (!authUser) {
     return (
       <div className="min-h-dvh bg-background flex flex-col items-center justify-center p-6">
-        <p className="text-muted-foreground mb-4">Unable to load profile</p>
+        <p className="text-muted-foreground mb-4">Please log in</p>
         <button
           onClick={() => navigate("/login")}
           className="bg-brand text-white px-6 py-3 rounded-xl font-medium"
@@ -110,7 +110,7 @@ const Profile = () => {
   }
 
   /* -------------------- DERIVED DATA -------------------- */
-  const displayUser = profileData?.user || profile;
+  const displayUser: any = profileData?.user || profile || authUser;
   const isOwnProfile = true; // This page is always the current user's profile for now
   const rank = profileData?.rank || 0;
 
@@ -121,10 +121,10 @@ const Profile = () => {
     earned: true, // All fetched badges are earned
   }));
 
-  const isAdmin = displayUser.role === 'president' || displayUser.role === 'admin';
-  const roleLabel = displayUser.role === 'president'
+  const isAdmin = displayUser?.role === 'president' || displayUser?.role === 'admin';
+  const roleLabel = displayUser?.role === 'president'
     ? '🛡️ Campus Welfare President'
-    : displayUser.role === 'admin'
+    : displayUser?.role === 'admin'
       ? '👑 Verified Admin'
       : null;
 
@@ -138,8 +138,8 @@ const Profile = () => {
 
             {/* Clickable Avatar */}
             <div
-              className={`relative group ${profileData ? '' : 'cursor-pointer'} w-fit`}
-              onClick={() => !profileData && setAvatarModalOpen(true)}
+              className={`relative group ${isOwnProfile ? 'cursor-pointer' : ''} w-fit`}
+              onClick={() => isOwnProfile && setAvatarModalOpen(true)}
             >
               <Avatar className="w-20 h-20 border-4 border-background/20 shadow-xl">
                 <AvatarImage
@@ -149,6 +149,7 @@ const Profile = () => {
                     const separator = displayUser.avatar_url.includes('?') ? '&' : '?';
                     return `${displayUser.avatar_url}${separator}t=${(displayUser as any).avatar_updated_at || Date.now()}`;
                   })()}
+                  referrerPolicy="no-referrer"
                   className="object-cover"
                 />
                 <AvatarFallback className="bg-white/20 text-white text-2xl backdrop-blur-md">
@@ -214,19 +215,31 @@ const Profile = () => {
       {/* 3. Stats Card */}
       <div className="px-1">
         <ResponsiveCard className="p-6 bg-gradient-to-br from-card to-accent/5">
-          <div className="flex items-center justify-between">
-            <div className="text-center flex-1">
-              <p className="text-4xl font-bold text-primary tracking-tight">{displayUser.points || 0}</p>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Kindness Points</p>
+          <div className="flex items-center justify-between text-center">
+            <div className="flex-1">
+              <p className="text-3xl font-bold text-primary tracking-tight">{displayUser.points || 0}</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-1">Points</p>
             </div>
-            <div className="w-px h-16 bg-border/50" />
-            <div className="text-center flex-1">
+
+            <div className="w-px h-10 bg-border/50" />
+
+            <div className="flex-1">
               {profileLoading ? (
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground mx-auto" />
               ) : (
-                <p className="text-4xl font-bold text-foreground">#{rank || '-'}</p>
+                <p className="text-3xl font-bold text-foreground">#{rank || '-'}</p>
               )}
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Monthly Rank</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-1">Global Rank</p>
+            </div>
+
+            <div className="w-px h-10 bg-border/50" />
+
+            <div className="flex-1">
+              <p className="text-3xl font-bold text-orange-500 tracking-tight flex items-center justify-center gap-1">
+                {profileData?.streak || 0}
+                <span className="text-xl">🔥</span>
+              </p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-1">Streak</p>
             </div>
           </div>
         </ResponsiveCard>
