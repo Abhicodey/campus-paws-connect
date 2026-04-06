@@ -7,7 +7,7 @@ interface QRScannerProps {
     facingMode?: "user" | "environment";
 }
 
-export const QRScanner = ({ onScanSuccess, onScanFailure, facingMode = "user" }: QRScannerProps) => {
+export const QRScanner = ({ onScanSuccess, onScanFailure, facingMode = "environment" }: QRScannerProps) => {
     const scannerRef = useRef<Html5Qrcode | null>(null);
     const regionId = "qr-reader";
 

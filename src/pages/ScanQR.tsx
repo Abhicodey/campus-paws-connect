@@ -63,7 +63,7 @@ const ScanQR = () => {
           {/* Scanner Frame */}
           <div className="absolute inset-0 border-4 border-primary rounded-3xl overflow-hidden shadow-2xl">
             {isScanning ? (
-              <QRScanner onScanSuccess={handleScanSuccess} facingMode="user" />
+              <QRScanner onScanSuccess={handleScanSuccess} facingMode="environment" />
             ) : (
               <div className="absolute inset-0 bg-muted/90 flex items-center justify-center p-6 text-center">
                 {isSearching ? (
