@@ -2,8 +2,8 @@ import { Mail, Instagram, FileText } from "lucide-react";
 
 export default function AppFooter() {
     return (
-        <footer className="mt-auto border-t border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="mx-auto max-w-7xl px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+        <footer className="mt-auto w-full border-t border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="w-full px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
 
                 {/* Branding */}
                 <p className="text-center sm:text-left">

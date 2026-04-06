@@ -3,8 +3,8 @@ import { OFFICIAL } from "@/constants/official";
 
 export default function Footer() {
     return (
-        <footer className="mt-16 border-t bg-muted/40 pb-8">
-            <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        <footer className="mt-16 w-full border-t bg-muted/40 pb-8">
+            <div className="w-full px-4 py-8 space-y-6">
 
                 {/* Socials */}
                 <div className="flex flex-wrap gap-6 justify-center text-sm">
